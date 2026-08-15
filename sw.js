@@ -1,10 +1,9 @@
-const CACHE = 'grand-ledger-v4';
+const CACHE = 'grand-ledger-v5';
 const ASSETS = [
-  './manifest.webmanifest?v=3',
+  './manifest.webmanifest?v=5',
   './firebase-config.js',
   './icons/icon-192.png?v=3',
-  './icons/icon-512.png?v=3',
-  'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Pinyon+Script&display=swap'
+  './icons/icon-512.png?v=3'
 ];
 
 self.addEventListener('install', function (e) {
@@ -33,7 +32,16 @@ self.addEventListener('fetch', function (e) {
     url.pathname.endsWith('/grand-ledger/') ||
     url.pathname.endsWith('/grand-ledger');
 
-  if (isAppShell || url.pathname.indexOf('/icons/') !== -1) {
+  if (isAppShell) {
+    e.respondWith(
+      fetch(e.request, { cache: 'no-store' }).catch(function () {
+        return caches.match(e.request);
+      })
+    );
+    return;
+  }
+
+  if (url.pathname.indexOf('/icons/') !== -1) {
     e.respondWith(
       fetch(e.request).then(function (res) {
         if (res && res.status === 200) {
@@ -47,15 +55,12 @@ self.addEventListener('fetch', function (e) {
   }
 
   e.respondWith(
-    caches.match(e.request).then(function (cached) {
-      var fetched = fetch(e.request).then(function (res) {
-        if (res && res.status === 200 && e.request.url.startsWith(self.location.origin)) {
-          var copy = res.clone();
-          caches.open(CACHE).then(function (cache) { cache.put(e.request, copy); });
-        }
-        return res;
-      }).catch(function () { return cached; });
-      return cached || fetched;
-    })
+    fetch(e.request).then(function (res) {
+      if (res && res.status === 200 && e.request.url.startsWith(self.location.origin)) {
+        var copy = res.clone();
+        caches.open(CACHE).then(function (cache) { cache.put(e.request, copy); });
+      }
+      return res;
+    }).catch(function () { return caches.match(e.request); })
   );
 });
