@@ -1,0 +1,30 @@
+{
+  "name": "The Grand Ledger",
+  "short_name": "Grand Ledger",
+  "description": "Personal 50/30/20 budget tracker",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#C8E8E4",
+  "theme_color": "#C07068",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
