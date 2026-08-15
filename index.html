@@ -60,7 +60,7 @@
     background-attachment: fixed;
   }
 
-  .grand-header { background: linear-gradient(135deg, #F2C4C0 0%, #E8D0CC 20%, #C8DED8 55%, #9ECFC8 85%, #8ECDC6 100%); padding: 24px 24px 20px; text-align: center; position: relative; border-bottom: 2px solid rgba(160,200,195,0.5); overflow: hidden; }
+  .grand-header { background: linear-gradient(135deg, #F2C4C0 0%, #E8D0CC 20%, #C8DED8 55%, #9ECFC8 85%, #8ECDC6 100%); padding: 0 16px 20px; padding-top: env(safe-area-inset-top, 0px); text-align: center; position: relative; border-bottom: 2px solid rgba(160,200,195,0.5); overflow: hidden; }
   .grand-header::before { content: ''; position: absolute; inset: 0; background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23C8D4DC' fill-opacity='0.2'%3E%3Ccircle cx='40' cy='40' r='1.5'/%3E%3Ccircle cx='10' cy='10' r='1'/%3E%3Ccircle cx='70' cy='10' r='1'/%3E%3Ccircle cx='10' cy='70' r='1'/%3E%3Ccircle cx='70' cy='70' r='1'/%3E%3C/g%3E%3C/svg%3E"); }
   .ribbon-top { font-family: 'Pinyon Script', cursive; font-size: 13px; color: var(--rose-dark); letter-spacing: 2px; margin-bottom: 6px; position: relative; opacity: 0.8; }
   .grand-title { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 600; color: var(--quill); line-height: 1.1; position: relative; letter-spacing: 0.5px; }
@@ -109,19 +109,19 @@
   .hamburger-btn { display: none; }
   .app-toolbar {
     display: flex; align-items: center; justify-content: space-between; gap: 8px;
-    padding: 10px 12px;
-    padding-top: calc(10px + env(safe-area-inset-top, 0px));
-    background: #F2C4C0;
-    border-bottom: 1px solid rgba(192,112,104,0.35);
-    position: sticky; top: 0; z-index: 40;
+    padding: 6px 0 4px;
+    background: none;
+    border: none;
+    position: relative;
+    z-index: 2;
   }
   .toolbar-btn {
-    font-family: 'Cormorant Garamond', serif; font-size: 15px; font-weight: 600;
-    color: var(--quill); background: rgba(253,240,238,0.85);
-    border: 1px solid var(--rose); border-radius: 2px;
-    padding: 10px 14px; min-height: 44px; cursor: pointer;
+    font-family: 'Cormorant Garamond', serif; font-size: 14px; font-weight: 600;
+    color: var(--quill); background: transparent;
+    border: none; border-radius: 2px;
+    padding: 10px 8px; min-height: 44px; cursor: pointer;
   }
-  .toolbar-btn:hover { background: #FDF0EE; }
+  .toolbar-btn:hover { background: rgba(253,240,238,0.35); }
   .menu-overlay { position: fixed; inset: 0; background: rgba(40,30,35,0.4); opacity: 0; pointer-events: none; transition: opacity .25s ease; z-index: 40; }
   .menu-overlay.open { opacity: 1; pointer-events: auto; }
   .side-menu { position: fixed; top: 0; right: 0; height: 100%; width: 78%; max-width: 280px; background: var(--porcelain); box-shadow: -6px 0 24px rgba(0,0,0,.18); transform: translateX(100%); transition: transform .3s ease; z-index: 50; display: flex; flex-direction: column; overflow-y: auto; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
@@ -354,12 +354,11 @@
 </head>
 <body>
 
-<div class="app-toolbar">
-  <button type="button" class="toolbar-btn" onclick="toggleMenu()" aria-label="Open menu">☰ Menu</button>
-  <button type="button" class="toolbar-btn" id="btn-toolbar-sync" onclick="openSyncModal()">☁ Sync</button>
-</div>
-
 <header class="grand-header">
+  <div class="app-toolbar">
+    <button type="button" class="toolbar-btn" onclick="toggleMenu()" aria-label="Open menu">☰ Menu</button>
+    <button type="button" class="toolbar-btn" id="btn-toolbar-sync" onclick="openSyncModal()">☁ Sync</button>
+  </div>
   <div class="ribbon-top" id="header-ribbon"></div>
   <h1 class="grand-title">The Grand Ledger</h1>
   <p class="grand-subtitle">A 50 · 30 · 20 Treasury for the Discerning Lady</p>
@@ -1894,7 +1893,7 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistrations().then(function(regs) {
       regs.forEach(function(reg) { reg.update(); });
     });
-    navigator.serviceWorker.register('./sw.js?v=5').catch(function() {});
+    navigator.serviceWorker.register('./sw.js?v=6').catch(function() {});
   });
 }
 </script>

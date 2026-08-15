@@ -1,6 +1,6 @@
-const CACHE = 'grand-ledger-v5';
+const CACHE = 'grand-ledger-v6';
 const ASSETS = [
-  './manifest.webmanifest?v=5',
+  './manifest.webmanifest?v=6',
   './firebase-config.js',
   './icons/icon-192.png?v=3',
   './icons/icon-512.png?v=3'
