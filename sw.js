@@ -1,4 +1,4 @@
-const CACHE = 'grand-ledger-v7';
+const CACHE = 'grand-ledger-v8';
 const ASSETS = [
   './manifest.webmanifest?v=7',
   './firebase-config.js',

@@ -316,6 +316,13 @@
     border-color: var(--silver); background: rgba(255,255,255,.7); color: var(--ink);
   }
   .sync-btn-ghost:hover { background: var(--silver-light); }
+  .sync-link {
+    display: inline-block;
+    margin-top: 10px;
+    background: none; border: none; padding: 8px 0;
+    font-family: 'EB Garamond', serif; font-size: 13px; font-style: italic;
+    color: var(--rose-dark); text-decoration: underline; cursor: pointer;
+  }
   .sync-note {
     font-family: 'EB Garamond', serif; font-style: italic;
     font-size: 13px; color: var(--ink); line-height: 1.45;
@@ -331,6 +338,11 @@
     border-radius: 2px;
     padding: 8px 10px;
     margin-bottom: 12px;
+  }
+  .sync-error.ok {
+    color: var(--savings-text);
+    background: var(--savings-bg);
+    border-color: var(--savings-border);
   }
   .sync-setup {
     font-family: 'EB Garamond', serif;
@@ -745,6 +757,7 @@
           <button type="button" class="sync-btn" onclick="cloudSignUp()">Create Account</button>
           <button type="button" class="sync-btn sync-btn-ghost" onclick="closeSyncModal()">Cancel</button>
         </div>
+        <button type="button" class="sync-link" onclick="cloudResetPassword()">Forgot password? Email me a reset link</button>
         </form>
       </div>
       <div id="sync-signed-in" style="display:none">
@@ -1534,16 +1547,17 @@ function refreshSyncModal() {
   if (homeCard) homeCard.style.display = signedIn ? 'none' : '';
 }
 
-function showSyncError(msg) {
+function showSyncError(msg, ok) {
   var el = document.getElementById('sync-error');
-  if (!el) { toast(msg, 'err'); return; }
+  if (!el) { toast(msg, ok ? 'ok' : 'err'); return; }
   el.style.display = msg ? 'block' : 'none';
+  el.className = ok ? 'sync-error ok' : 'sync-error';
   el.textContent = msg || '';
 }
 
 function authErrorMessage(err) {
   var code = (err && err.code) || '';
-  if (code === 'auth/email-already-in-use') return 'That email already has an account. Tap Sign In instead of Create Account.';
+  if (code === 'auth/email-already-in-use') return 'That email already has an account. Tap Sign In, or Forgot password if you do not remember it.';
   if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found' || code === 'auth/invalid-login-credentials') return 'Email or password is not right. Use the same login as The Grand Library, or Create Account if you never made one.';
   if (code === 'auth/too-many-requests') return 'Too many tries. Wait a minute, then try again.';
   if (code === 'auth/network-request-failed') return 'The phone could not reach the sync server. Check Wi-Fi, then try again.';
@@ -1579,6 +1593,19 @@ function cloudSignUp() {
   cloudAuth.createUserWithEmailAndPassword(email, password).then(function() {
     closeSyncModal();
     toast('✦ Account created — syncing your ledger.', 'ok');
+  }).catch(function(err) {
+    showSyncError(authErrorMessage(err));
+  });
+}
+
+function cloudResetPassword() {
+  if (!cloudReady) { showSyncError('Cloud sync is not set up yet.'); return; }
+  var email = document.getElementById('sync-email').value.trim();
+  if (!email) { showSyncError('Type your email first, then tap Forgot password.'); return; }
+  showSyncError('');
+  cloudAuth.sendPasswordResetEmail(email).then(function() {
+    showSyncError('Reset link sent to ' + email + '. Check inbox and spam, set a new password, then tap Sign In here.', true);
+    toast('✦ Reset email sent. Check that inbox (and spam).', 'ok');
   }).catch(function(err) {
     showSyncError(authErrorMessage(err));
   });
@@ -1947,7 +1974,7 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistrations().then(function(regs) {
       regs.forEach(function(reg) { reg.update(); });
     });
-    navigator.serviceWorker.register('./sw.js?v=7').catch(function() {});
+    navigator.serviceWorker.register('./sw.js?v=8').catch(function() {});
   });
 }
 </script>
