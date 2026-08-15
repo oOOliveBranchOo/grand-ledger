@@ -1,6 +1,6 @@
-const CACHE = 'grand-ledger-v6';
+const CACHE = 'grand-ledger-v7';
 const ASSETS = [
-  './manifest.webmanifest?v=6',
+  './manifest.webmanifest?v=7',
   './firebase-config.js',
   './icons/icon-192.png?v=3',
   './icons/icon-512.png?v=3'
@@ -27,6 +27,7 @@ self.addEventListener('activate', function (e) {
 self.addEventListener('fetch', function (e) {
   if (e.request.method !== 'GET') return;
   var url = new URL(e.request.url);
+  if (/firebase|googleapis|gstatic|google\.com/.test(url.hostname)) return;
   var isAppShell = url.pathname.endsWith('/') ||
     url.pathname.endsWith('/index.html') ||
     url.pathname.endsWith('/grand-ledger/') ||
