@@ -1,9 +1,9 @@
-const CACHE = 'grand-ledger-v2';
+const CACHE = 'grand-ledger-v3';
 const ASSETS = [
-  './manifest.webmanifest',
+  './manifest.webmanifest?v=3',
   './firebase-config.js',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
+  './icons/icon-192.png?v=3',
+  './icons/icon-512.png?v=3',
   'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Pinyon+Script&display=swap'
 ];
 
@@ -33,7 +33,7 @@ self.addEventListener('fetch', function (e) {
     url.pathname.endsWith('/grand-ledger/') ||
     url.pathname.endsWith('/grand-ledger');
 
-  if (isAppShell) {
+  if (isAppShell || url.pathname.indexOf('/icons/') !== -1) {
     e.respondWith(
       fetch(e.request).then(function (res) {
         if (res && res.status === 200) {
