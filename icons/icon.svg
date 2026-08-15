@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#1E4A46"/>
-  <rect x="96" y="128" width="320" height="280" rx="16" fill="#FDF0EE" stroke="#C07068" stroke-width="10"/>
-  <rect x="96" y="128" width="36" height="280" rx="8" fill="#E8A8A0"/>
-  <line x1="168" y1="200" x2="380" y2="200" stroke="#8ECDC8" stroke-width="10" stroke-linecap="round"/>
-  <line x1="168" y1="248" x2="360" y2="248" stroke="#A8C4C0" stroke-width="8" stroke-linecap="round"/>
-  <line x1="168" y1="296" x2="340" y2="296" stroke="#A8C4C0" stroke-width="8" stroke-linecap="round"/>
-  <circle cx="368" cy="360" r="42" fill="#C8E8E4" stroke="#C07068" stroke-width="8"/>
-  <text x="368" y="376" text-anchor="middle" font-size="42" fill="#1E4A46" font-family="serif">$</text>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F2C4C0"/>
+      <stop offset="100%" stop-color="#9ECFC8"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <rect x="108" y="118" width="296" height="276" rx="22" fill="#FDF0EE" stroke="#C07068" stroke-width="8"/>
+  <rect x="108" y="118" width="40" height="276" rx="10" fill="#E8A8A0"/>
+  <line x1="176" y1="188" x2="360" y2="188" stroke="#8ECDC8" stroke-width="10" stroke-linecap="round"/>
+  <line x1="176" y1="236" x2="340" y2="236" stroke="#A8C4C0" stroke-width="8" stroke-linecap="round"/>
+  <line x1="176" y1="284" x2="320" y2="284" stroke="#A8C4C0" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="352" cy="352" r="46" fill="#C8E8E4" stroke="#C07068" stroke-width="8"/>
+  <text x="352" y="368" text-anchor="middle" font-size="44" fill="#C07068" font-family="Georgia, serif" font-weight="700">$</text>
 </svg>
