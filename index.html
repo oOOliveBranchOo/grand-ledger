@@ -80,7 +80,9 @@
   .home-link .hl-name { font-family: 'Cormorant Garamond', serif; font-weight: 700; font-size: 15px; color: var(--quill); text-transform: uppercase; letter-spacing: .5px; }
   .home-link .hl-desc { font-family: 'EB Garamond', serif; font-style: italic; font-size: 12.5px; color: var(--ink); margin-top: 2px; }
   .home-link:hover .hl-name { color: var(--rose-dark); }
-  .bill-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--silver-light); gap: 10px; }
+  .bill-row { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; padding: 12px 0; border-bottom: 1px solid var(--silver-light); gap: 10px; }
+  .bill-info { flex: 1 1 150px; min-width: 0; }
+  .bill-right { flex-wrap: wrap; justify-content: flex-end; }
   .bill-row:last-child { border-bottom: none; }
   .bill-info { display: flex; flex-direction: column; }
   .bill-name { font-family: 'Cormorant Garamond', serif; font-weight: 700; font-size: 14px; color: var(--quill); }
@@ -88,6 +90,10 @@
   .bill-meta.overdue { color: var(--rose-dark); opacity: 1; font-weight: 600; }
   .bill-right { display: flex; align-items: center; gap: 10px; }
   .bill-amt { font-family: 'Cormorant Garamond', serif; font-weight: 700; font-size: 14px; color: var(--quill); }
+  input.bill-amt-input[type="number"] { width: 78px; flex: none; text-align: right; padding: 5px 6px; font-family: 'Cormorant Garamond', serif; font-size: 14px; font-weight: 700; }
+  select.bill-account { width: auto; max-width: 140px; margin-top: 6px; padding: 4px 8px; font-size: 13px; }
+  .bank-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .bank-actions .btn-silver { flex: 1; min-width: 108px; }
   .paid-toggle { border: 1.5px solid var(--silver); border-radius: 99px; padding: 5px 12px; font-family: 'Cormorant Garamond', serif; font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; cursor: pointer; background: none; color: var(--silver); }
   .paid-toggle.is-paid { background: var(--willow); border-color: var(--willow); color: #fff; }
   .bill-del { background: none; border: none; color: var(--rose-dark); font-size: 15px; cursor: pointer; padding: 2px 4px; opacity: .6; }
@@ -188,8 +194,9 @@
   .budget-edit-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--silver-light); gap: 10px; }
   .budget-edit-row:last-child { border-bottom: none; }
   .budget-edit-label { font-family: 'EB Garamond', serif; font-size: 14px; font-style: italic; color: var(--ink); flex: 1; }
-  .budget-edit-input { width: 88px; font-family: 'Cormorant Garamond', serif; font-size: 14px; text-align: right; padding: 5px 8px; border: 1px solid var(--silver-light); border-bottom: 1.5px solid var(--silver); background: rgba(255,255,255,0.8); color: var(--quill); border-radius: 2px; outline: none; -webkit-appearance: none; }
-  .budget-edit-input:focus { border-color: var(--rose); box-shadow: 0 1px 6px rgba(212,165,181,0.2); }
+  input.budget-edit-name[type="text"] { flex: 1; min-width: 0; width: auto; font-family: 'EB Garamond', serif; font-size: 14px; font-style: italic; padding: 5px 8px; }
+  input.budget-edit-input[type="number"] { width: 88px; flex: none; font-family: 'Cormorant Garamond', serif; font-size: 14px; text-align: right; padding: 5px 8px; border: 1px solid var(--silver-light); border-bottom: 1.5px solid var(--silver); background: rgba(255,255,255,0.8); color: var(--quill); border-radius: 2px; outline: none; -webkit-appearance: none; }
+  input.budget-edit-input[type="number"]:focus { border-color: var(--rose); box-shadow: 0 1px 6px rgba(212,165,181,0.2); }
 
   .pill-group { display: flex; gap: 7px; }
   .pill { flex: 1; padding: 9px 4px; border: 1px solid var(--silver-light); border-radius: 2px; background: rgba(255,255,255,0.5); color: var(--silver); font-family: 'Cormorant Garamond', serif; font-size: 12px; font-weight: 600; letter-spacing: .3px; cursor: pointer; text-align: center; transition: all .2s; }
@@ -422,7 +429,7 @@
   <div class="card">
     <div class="card-title">✦ Find Your Way ✦</div>
     <div class="home-links">
-      <button class="home-link" onclick="goTab('dash')"><span class="hl-name">Ledger</span><span class="hl-desc">Your monthly snapshot at a glance</span></button>
+      <button class="home-link" onclick="goTab('dash')"><span class="hl-name">Ledger</span><span class="hl-desc">Bank balances and your monthly snapshot</span></button>
       <button class="home-link" onclick="goTab('income')"><span class="hl-name">Side Income</span><span class="hl-desc">Log contract & side-gig earnings</span></button>
       <button class="home-link" onclick="goTab('bills')"><span class="hl-name">Bills</span><span class="hl-desc">Track what's due and what's paid</span></button>
       <button class="home-link" onclick="goTab('log')"><span class="hl-name">Dispatch</span><span class="hl-desc">Log a new expense</span></button>
@@ -445,6 +452,33 @@
     <div class="stat"><div class="stat-label">Savings Rate</div><div class="stat-value sv-purple" id="d-rate">0%</div></div>
   </div>
   <div class="banner banner-blush" id="d-income-note" style="display:none;"></div>
+  <div class="card" id="bank-card">
+    <div class="card-title">✦ The Bank ✦</div>
+    <div class="banner banner-blue" style="font-size:12px;">What is sitting in checking and savings. Paying a bill lowers the account it comes out of. The bars below stay the budget plan.</div>
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-label">Checking</div><div class="stat-value sv-blue" id="bank-checking">—</div></div>
+      <div class="stat"><div class="stat-label">Savings</div><div class="stat-value sv-purple" id="bank-savings">—</div></div>
+    </div>
+    <div class="banner banner-blush" id="bank-due-note" style="display:none;"></div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Account</label>
+        <select id="bank-account">
+          <option value="checking">Checking</option>
+          <option value="savings">Savings</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Amount ($)</label>
+        <input type="number" id="bank-amt" placeholder="0.00" step="0.01">
+      </div>
+    </div>
+    <div class="bank-actions">
+      <button type="button" class="btn-silver" onclick="adjustBank(1)">Money in</button>
+      <button type="button" class="btn-silver" onclick="adjustBank(-1)">Money out</button>
+      <button type="button" class="btn-silver" onclick="setBankExact()">Set to this amount</button>
+    </div>
+  </div>
   <div class="card">
     <span class="card-title-script">The Allocations</span>
     <div id="buckets-wrap"></div>
@@ -585,12 +619,17 @@
       <div class="form-group"><label class="form-label">Amount ($)</label><input type="number" id="bill-amt" placeholder="0" step="0.01"></div>
       <div class="form-group"><label class="form-label">Due Day of Month</label><input type="number" id="bill-day" placeholder="1-31" min="1" max="31"></div>
     </div>
-    <div class="form-group"><label class="form-label">Bucket</label>
-      <select id="bill-bucket"><option value="Needs">Needs</option><option value="Wants">Wants</option><option value="Savings">Savings</option></select>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Bucket</label>
+        <select id="bill-bucket"><option value="Needs">Needs</option><option value="Wants">Wants</option><option value="Savings">Savings</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Comes out of</label>
+        <select id="bill-account"><option value="checking">Checking</option><option value="savings">Savings</option></select>
+      </div>
     </div>
     <label style="display:flex;align-items:flex-start;gap:8px;font-family:'EB Garamond',serif;font-size:12.5px;color:var(--ink);margin:4px 0 14px;cursor:pointer;">
       <input type="checkbox" id="bill-track-only" style="margin-top:2px;">
-      <span><strong>Tracking only</strong> — don't count toward spending totals. Use this for bills like a credit card, where the purchases are already logged individually in Dispatch. This becomes just a paid/unpaid reminder.</span>
+      <span><strong>Tracking only</strong> — the purchases are already in Dispatch, so this payment does not count again in the budget. It still comes out of the account you choose. Use this for the credit card.</span>
     </label>
     <button class="btn-primary" onclick="addBill()">✦ Add Bill</button>
   </div>
@@ -674,13 +713,33 @@
 
   <div class="card">
     <div class="card-title">✦ Edit Monthly Budget Amounts ✦</div>
-    <div class="banner banner-blue" style="font-size:12px;">Adjust any provision below, then press Revise to save your changes.</div>
+    <div class="banner banner-blue" style="font-size:12px;">Rename a title, change its amount, or add one that is missing, such as renter's insurance. Remove a line you do not use, then press Revise.</div>
     <div class="section-title">The Necessities</div>
     <div id="edit-needs"></div>
     <div class="section-title">The Pleasures</div>
     <div id="edit-wants"></div>
     <div class="section-title">The Treasury</div>
     <div id="edit-savings"></div>
+    <div class="section-title">Add a Provision</div>
+    <div class="form-group">
+      <label class="form-label">Title</label>
+      <input type="text" id="new-budget-name" placeholder="e.g. Renter's Insurance">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Where it belongs</label>
+        <select id="new-budget-bucket">
+          <option value="Needs">The Necessities</option>
+          <option value="Wants">The Pleasures</option>
+          <option value="Savings">The Treasury</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Monthly amount ($)</label>
+        <input type="number" id="new-budget-amt" placeholder="0.00" min="0" step="0.01">
+      </div>
+    </div>
+    <button type="button" class="btn-silver" style="width:100%;" onclick="addBudgetLine()">Add this provision</button>
     <button class="btn-primary" style="margin-top:14px;" onclick="saveBudgets()">✦ Revise the Provisions ✦</button>
   </div>
 
@@ -789,6 +848,8 @@ var APP = {
   savePct: 0,
   saveMonthly: 0,
   grossIncome: 0,
+  checking: null,
+  savings: null,
   bucket: 'Needs',
   affirmations: [
     "Every coin I set aside is a small act of self-devotion; I am building a life as beautiful on the inside as it appears on the outside.",
@@ -829,6 +890,12 @@ function load() {
     updatePayFreqLabel();
     var b = localStorage.getItem('coquette_budgets');
     APP.budgets = b ? JSON.parse(b) : JSON.parse(JSON.stringify(APP.defaultBudgets));
+    var ck = localStorage.getItem('coquette_checking');
+    APP.checking = (ck===null || ck==='') ? null : parseFloat(ck);
+    if (isNaN(APP.checking)) APP.checking = null;
+    var sv = localStorage.getItem('coquette_savings');
+    APP.savings = (sv===null || sv==='') ? null : parseFloat(sv);
+    if (isNaN(APP.savings)) APP.savings = null;
   } catch(e){ APP.budgets = JSON.parse(JSON.stringify(APP.defaultBudgets)); }
   document.getElementById('affirmation-text').textContent = APP.affirmations[Math.floor(Math.random()*APP.affirmations.length)];
 }
@@ -851,6 +918,8 @@ function persist(opts) {
     localStorage.setItem('coquette_payamt', (APP.payAmt!=null)?APP.payAmt:'');
     localStorage.setItem('coquette_k401pct', (APP.k401Pct!=null)?APP.k401Pct:0);
     localStorage.setItem('coquette_savepct', (APP.savePct!=null)?APP.savePct:0);
+    localStorage.setItem('coquette_checking', (APP.checking!=null && !isNaN(APP.checking)) ? APP.checking : '');
+    localStorage.setItem('coquette_savings', (APP.savings!=null && !isNaN(APP.savings)) ? APP.savings : '');
     if (!opts.skipCloudWrite) {
       localStorage.setItem(SYNC_TIME_KEY, new Date().toISOString());
       scheduleCloudWrite();
@@ -872,6 +941,7 @@ function setSideIncome(a, opts){ opts=opts||{}; try{ localStorage.setItem('coque
 function sideIncomeForMonth(month){ var t=0; getSideIncome().forEach(function(e){ if(e.month===month) t+=e.amount; }); return Math.round(t*100)/100; }
 
 function fmt(n) { return '$'+Math.round(parseFloat(n||0)).toLocaleString('en-US'); }
+function escHtml(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function fmtD(n){ return '$'+parseFloat(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function pct(a,b){ return b>0?Math.min(Math.round((a/b)*1000)/10,100):0; }
 function curMonth(){ var n=new Date(); return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0'); }
@@ -1008,12 +1078,13 @@ function renderDash() {
     var statusTxt = over?'⚠ Over by '+fmtD(Math.abs(rem)) : near?'⚠ Nearing the limit — '+fmtD(rem)+' left ('+Math.round(p)+'% used)' : '✦ '+fmtD(rem)+' remaining in the reserve';
     html+='<div class="bucket '+(over?'over':near?'near':b.key)+'">'
       +'<div class="bkt-row"><span class="bkt-name">'+b.label+' <em style="font-weight:400;opacity:.6;font-size:12px;">('+b.target+')</em></span>'
-      +'<span class="bkt-nums">'+fmtD(b.actual)+' of '+fmt(b.budget)+'</span></div>'
+      +'<span class="bkt-nums">'+fmtD(b.actual)+' of '+fmtD(b.budget)+'</span></div>'
       +'<div class="progress"><div class="progress-fill" style="width:'+p+'%"></div></div>'
       +'<div class="bkt-status '+statusCls+'">'+statusTxt+'</div>'+autoNote+'</div>';
   });
   document.getElementById('buckets-wrap').innerHTML=html;
   renderSuggested();
+  renderBank();
 }
 
 function renderSuggested() {
@@ -1024,7 +1095,7 @@ function renderSuggested() {
   var html='';
   ['Needs','Wants','Savings'].forEach(function(b){
     html+='<div class="section-title">'+labels[b]+'</div>';
-    groups[b].forEach(function(s){ html+='<div class="suggested-item"><span class="suggested-name">'+s.cat+'</span><span class="suggested-amt">'+fmt(s.amt)+' <span class="badge '+bc[b]+'">'+b+'</span></span></div>'; });
+    groups[b].forEach(function(s){ html+='<div class="suggested-item"><span class="suggested-name">'+escHtml(s.cat)+'</span><span class="suggested-amt">'+fmtD(s.amt)+' <span class="badge '+bc[b]+'">'+b+'</span></span></div>'; });
   });
   document.getElementById('suggested-wrap').innerHTML=html;
 }
@@ -1059,7 +1130,21 @@ function renderHist() {
   exps.forEach(function(e){ var billFlag=e.billId?'<span class="badge" style="background:var(--porcelain);color:var(--rose-dark);border:1px solid var(--rose);margin-left:6px;">🔖 Auto-Bill</span>':''; html+='<div class="exp-item"><div class="exp-left"><div class="exp-desc">'+e.description+'</div><div class="exp-meta">'+e.date+' · '+e.category+' · '+e.payment+billFlag+'</div></div><div class="exp-right"><div class="exp-amount">'+fmtD(e.amount)+'</div><span class="badge '+(bc[e.bucket]||'b-needs')+'">'+e.bucket+'</span></div></div>'; });
   document.getElementById('hist-wrap').innerHTML=html;
 }
-function undoLast(){ var exps=getExpenses(); if(!exps.length){toast('The chronicle is already bare.','err');return;} var removed=exps.pop(); setExpenses(exps); if(removed && removed.billId){ setBillPay(getBillPay().filter(function(p){return !(p.billId===removed.billId && p.month===removed.month);})); } toast('↩ The last entry has been rescinded.','ok'); renderHist(); renderDash(); }
+function undoLast(){
+  var exps=getExpenses();
+  if(!exps.length){toast('The chronicle is already bare.','err');return;}
+  var removed=exps.pop();
+  setExpenses(exps);
+  if(removed && removed.billId){
+    var pay=getBillPay();
+    var rec=pay.find(function(p){return p.billId===removed.billId && p.month===removed.month;});
+    if(rec && rec.paid && Number(rec.amount)>0 && accountIsSet(rec.account||'checking')) shiftAccount(rec.account||'checking', Number(rec.amount));
+    setBillPay(pay.filter(function(p){return !(p.billId===removed.billId && p.month===removed.month);}));
+  }
+  toast('↩ The last entry has been rescinded.','ok');
+  renderHist();
+  renderDash();
+}
 
 /* ANNUAL */
 function renderAnnual() {
@@ -1172,7 +1257,7 @@ function renderReports(){
     var statusCls2 = over?'s-bad':near?'s-warn':'s-ok';
     var statusTxt2 = over?'⚠ Over by '+fmtD(Math.abs(rem)) : near?'⚠ Nearing the limit — '+fmtD(rem)+' left ('+Math.round(p)+'% used)' : '✦ '+fmtD(rem)+' remaining';
     bh+='<div class="bucket '+(over?'over':near?'near':b.key)+'">'
-      +'<div class="bkt-row"><span class="bkt-name">'+b.label+'</span><span class="bkt-nums">'+fmtD(b.actual)+' of '+fmt(b.budget)+'</span></div>'
+      +'<div class="bkt-row"><span class="bkt-name">'+b.label+'</span><span class="bkt-nums">'+fmtD(b.actual)+' of '+fmtD(b.budget)+'</span></div>'
       +'<div class="progress"><div class="progress-fill" style="width:'+p+'%"></div></div>'
       +'<div class="bkt-status '+statusCls2+'">'+statusTxt2+'</div>'+autoNote+'</div>';
   });
@@ -1234,17 +1319,20 @@ function buildBillsMonthPicker(){
   years.forEach(function(y){ for(var m=11;m>=0;m--){ var v=y+'-'+String(m+1).padStart(2,'0'); var o=document.createElement('option'); o.value=v; o.textContent=ML[m]+' '+y; if(v===cur)o.selected=true; sel.appendChild(o); }});
   if(!sel.value) sel.value=cm;
 }
+var BILL_SEQ = 0;
 function addBill(){
   var name=document.getElementById('bill-name').value.trim();
   var amt=parseFloat(document.getElementById('bill-amt').value);
   var day=parseInt(document.getElementById('bill-day').value);
   var bucket=document.getElementById('bill-bucket').value;
+  var account=document.getElementById('bill-account').value==='savings'?'savings':'checking';
   var trackOnly=document.getElementById('bill-track-only').checked;
   if(!name){toast('Please name the bill.','err');return;}
   if(!amt||amt<=0){toast('Please enter a valid amount.','err');return;}
   if(!day||day<1||day>31){toast('Please enter a due day between 1 and 31.','err');return;}
   var bills=getBills();
-  bills.push({id:'b'+Date.now(), name:name, amt:amt, dueDay:day, bucket:bucket, trackOnly:trackOnly});
+  BILL_SEQ += 1;
+  bills.push({id:'b'+Date.now()+'-'+BILL_SEQ, name:name, amt:amt, dueDay:day, bucket:bucket, account:account, trackOnly:trackOnly});
   setBills(bills);
   document.getElementById('bill-name').value='';
   document.getElementById('bill-amt').value='';
@@ -1255,10 +1343,20 @@ function addBill(){
 }
 function deleteBill(id){
   if(!confirm('Remove this bill entirely, including all its past paid history? This cannot be undone.')) return;
+  var pay=getBillPay();
+  pay.forEach(function(p){
+    if(p.billId!==id || !p.paid || !(Number(p.amount)>0)) return;
+    var which=p.account==='savings'?'savings':'checking';
+    if(!accountIsSet(which)) return;
+    var next=Math.round((accountBalance(which)+Number(p.amount))*100)/100;
+    if(which==='savings') APP.savings=next; else APP.checking=next;
+  });
+  persist();
   setBills(getBills().filter(function(b){return b.id!==id;}));
-  setBillPay(getBillPay().filter(function(p){return p.billId!==id;}));
+  setBillPay(pay.filter(function(p){return p.billId!==id;}));
   setExpenses(getExpenses().filter(function(e){return e.billId!==id;}));
   renderBills();
+  renderBank();
 }
 function cancelBill(id){
   var month=document.getElementById('bills-month').value||curMonth();
@@ -1278,30 +1376,142 @@ function reactivateBill(id){
 }
 function daysInMonth(monthKey){ var parts=monthKey.split('-'); return new Date(parseInt(parts[0]), parseInt(parts[1]), 0).getDate(); }
 function isBillPaid(id,month){ return getBillPay().some(function(p){return p.billId===id && p.month===month && p.paid;}); }
+function billAccountOf(bill){ return bill && bill.account==='savings' ? 'savings' : 'checking'; }
+function accountName(which){ return which==='savings' ? 'Savings' : 'Checking'; }
+function accountBalance(which){ return which==='savings' ? APP.savings : APP.checking; }
+function accountIsSet(which){ var v=accountBalance(which); return v!=null && !isNaN(v); }
+function setAccountBalance(which, value, opts){
+  var n=Math.round(Number(value)*100)/100;
+  if(which==='savings') APP.savings=n; else APP.checking=n;
+  persist(opts||{});
+  renderBank();
+}
+function shiftAccount(which, delta, opts){
+  which=which==='savings'?'savings':'checking';
+  if(!accountIsSet(which)) return false;
+  setAccountBalance(which, accountBalance(which)+Number(delta), opts);
+  return true;
+}
+function unpaidForAccount(account, month){
+  var total=0;
+  getBills().forEach(function(b){
+    if(b.endMonth) return;
+    if(billAccountOf(b)!==account) return;
+    if(isBillPaid(b.id, month)) return;
+    total+=Number(b.amt)||0;
+  });
+  return Math.round(total*100)/100;
+}
+function renderBank(){
+  var cEl=document.getElementById('bank-checking');
+  var sEl=document.getElementById('bank-savings');
+  if(!cEl || !sEl) return;
+  cEl.textContent = accountIsSet('checking') ? fmtD(APP.checking) : '—';
+  sEl.textContent = accountIsSet('savings') ? fmtD(APP.savings) : '—';
+  cEl.className = 'stat-value ' + (accountIsSet('checking') && APP.checking<0 ? 'sv-rose' : 'sv-blue');
+  sEl.className = 'stat-value ' + (accountIsSet('savings') && APP.savings<0 ? 'sv-rose' : 'sv-purple');
+  var monthEl=document.getElementById('dash-month');
+  var month=monthEl && monthEl.value ? monthEl.value : curMonth();
+  var note=document.getElementById('bank-due-note');
+  if(!note) return;
+  var cDue=unpaidForAccount('checking', month);
+  var sDue=unpaidForAccount('savings', month);
+  var bits=[];
+  if(cDue>0) bits.push(fmtD(cDue)+' still to leave checking');
+  if(sDue>0) bits.push(fmtD(sDue)+' still to leave savings');
+  if(bits.length){ note.style.display=''; note.textContent='✦ '+bits.join(' · '); }
+  else { note.style.display='none'; note.textContent=''; }
+}
+function adjustBank(sign){
+  var amt=Math.round((parseFloat(document.getElementById('bank-amt').value)||0)*100)/100;
+  if(!(amt>0)){ toast('Enter an amount.','err'); return; }
+  var which=document.getElementById('bank-account').value==='savings'?'savings':'checking';
+  if(!accountIsSet(which)){
+    if(sign<0){ toast('Set the '+accountName(which).toLowerCase()+' amount first.','err'); return; }
+    setAccountBalance(which, amt);
+  } else {
+    setAccountBalance(which, accountBalance(which)+sign*amt);
+  }
+  document.getElementById('bank-amt').value='';
+  var left=accountBalance(which);
+  toast((sign>0?'✦ Added ':'✦ Took ')+fmtD(amt)+(sign>0?' to ':' from ')+accountName(which)+'. '+fmtD(left)+' remains.', left<0?'warn':'ok');
+}
+function setBankExact(){
+  var raw=document.getElementById('bank-amt').value;
+  var amt=parseFloat(raw);
+  if(raw==='' || isNaN(amt)){ toast('Enter the amount you see at the bank.','err'); return; }
+  var which=document.getElementById('bank-account').value==='savings'?'savings':'checking';
+  setAccountBalance(which, amt);
+  document.getElementById('bank-amt').value='';
+  toast('✦ '+accountName(which)+' set to '+fmtD(amt)+'.','ok');
+}
+function setBillAccount(id, account){
+  var bills=getBills();
+  var b=bills.find(function(x){return x.id===id;});
+  if(!b) return;
+  b.account=account==='savings'?'savings':'checking';
+  setBills(bills);
+  renderBills();
+  renderBank();
+}
+function setBillAmount(id, value){
+  var amt=Math.round((parseFloat(value)||0)*100)/100;
+  if(!(amt>0)){ toast('Enter an amount greater than zero.','err'); renderBills(); return; }
+  var bills=getBills();
+  var b=bills.find(function(x){return x.id===id;});
+  if(!b) return;
+  b.amt=amt;
+  setBills(bills);
+  renderBills();
+  renderBank();
+}
 function toggleBillPaid(id,month){
   var pay=getBillPay();
   var existing=pay.find(function(p){return p.billId===id && p.month===month;});
   var nowPaid = existing ? !existing.paid : true;
-  if(existing){ existing.paid=nowPaid; } else { pay.push({billId:id, month:month, paid:true}); }
-  setBillPay(pay);
-
   var bill=getBills().find(function(b){return b.id===id;});
-  if(bill && !bill.trackOnly){
-    var exps=getExpenses();
-    if(nowPaid){
+  if(!bill){ toast('That bill could not be found.','err'); return; }
+
+  if(nowPaid){
+    var account=billAccountOf(bill);
+    var amt=Math.round((Number(bill.amt)||0)*100)/100;
+    if(!(amt>0)){ toast('Enter the amount before marking it paid.','err'); return; }
+    if(!accountIsSet(account)){
+      toast('Set your '+accountName(account).toLowerCase()+' amount on the Ledger first, then mark this paid.','err');
+      return;
+    }
+    if(existing){ existing.paid=true; existing.account=account; existing.amount=amt; }
+    else { pay.push({billId:id, month:month, paid:true, account:account, amount:amt}); }
+    setBillPay(pay);
+    shiftAccount(account, -amt);
+    if(!bill.trackOnly){
+      var exps=getExpenses();
       if(!exps.some(function(e){return e.billId===id && e.month===month;})){
         var day=Math.min(bill.dueDay, daysInMonth(month));
         var dateStr=month+'-'+String(day).padStart(2,'0');
-        exps.push({id:'exp-bill-'+id+'-'+month, month:month, date:dateStr, category:bill.name, description:bill.name+' (bill)', bucket:bill.bucket||'Needs', amount:bill.amt, payment:'Bill Auto-Pay', billId:id});
+        exps.push({id:'exp-bill-'+id+'-'+month, month:month, date:dateStr, category:bill.name, description:bill.name+' (bill)', bucket:bill.bucket||'Needs', amount:amt, payment:'Bill Auto-Pay', billId:id});
         setExpenses(exps);
       }
-    } else {
-      setExpenses(exps.filter(function(e){ return !(e.billId===id && e.month===month); }));
+    }
+    var left=accountBalance(account);
+    toast('✦ '+fmtD(amt)+' left '+accountName(account)+'. '+fmtD(left)+' remains.', left<0?'warn':'ok');
+  } else {
+    var backAccount=(existing && existing.account) ? (existing.account==='savings'?'savings':'checking') : billAccountOf(bill);
+    var backAmt=(existing && Number(existing.amount)>0) ? Number(existing.amount) : 0;
+    if(existing) existing.paid=false;
+    setBillPay(pay);
+    if(backAmt>0 && accountIsSet(backAccount)){
+      shiftAccount(backAccount, backAmt);
+      toast('↩ '+fmtD(backAmt)+' returned to '+accountName(backAccount)+'.','ok');
+    }
+    if(!bill.trackOnly){
+      setExpenses(getExpenses().filter(function(e){ return !(e.billId===id && e.month===month); }));
     }
   }
   renderBills();
   if(document.getElementById('pg-dash').classList.contains('active')) renderDash();
-  if(nowPaid && bill && !bill.trackOnly) setTimeout(function(){ checkBudgetAlert(bill.bucket||'Needs', month); }, 400);
+  else renderBank();
+  if(nowPaid && bill && !bill.trackOnly) setTimeout(function(){ checkBudgetAlert(bill.bucket||'Needs', month); }, 1800);
 }
 function monthLabel(monthKey){ var p=monthKey.split('-'); return ML[parseInt(p[1])-1]+' '+p[0]; }
 function renderBills(){
@@ -1316,14 +1526,25 @@ function renderBills(){
   if(!bills.length){
     document.getElementById('bills-wrap').innerHTML='<div class="empty">No active bills for this period.</div>';
   } else {
+    var payAll=getBillPay();
     bills.slice().sort(function(a,b){return a.dueDay-b.dueDay;}).forEach(function(b){
-      var paid=isBillPaid(b.id,month);
-      totalDue+=b.amt; if(paid) totalPaid+=b.amt;
+      var payRec=payAll.find(function(p){return p.billId===b.id && p.month===month;});
+      var paid=!!(payRec && payRec.paid);
+      var shownAmt=(paid && Number(payRec.amount)>0) ? Number(payRec.amount) : b.amt;
+      var fromAcct=(paid && payRec.account) ? (payRec.account==='savings'?'savings':'checking') : billAccountOf(b);
+      totalDue+=shownAmt; if(paid) totalPaid+=shownAmt;
       var overdue = isCurrentMonth && !paid && b.dueDay<todayDay;
-      var metaBits='Due day '+b.dueDay+(overdue?' · overdue':'')+(b.trackOnly?' · tracking only':'');
+      var metaBits='Due day '+b.dueDay+(overdue?' · overdue':'')+(paid?' · paid from '+accountName(fromAcct):' · from '+accountName(billAccountOf(b)))+(b.trackOnly?' · tracking only':'');
+      var acctSelect = paid ? '' :
+        '<select class="bill-account" onchange="setBillAccount(\''+b.id+'\', this.value)">'
+        +'<option value="checking"'+(billAccountOf(b)==='checking'?' selected':'')+'>Checking</option>'
+        +'<option value="savings"'+(billAccountOf(b)==='savings'?' selected':'')+'>Savings</option></select>';
+      var amtHtml = paid
+        ? '<span class="bill-amt">'+fmtD(shownAmt)+'</span>'
+        : '<input type="number" class="bill-amt-input" value="'+b.amt+'" step="0.01" min="0" onchange="setBillAmount(\''+b.id+'\', this.value)">';
       html+='<div class="bill-row">'
-        +'<div class="bill-info"><span class="bill-name">'+b.name+'</span><span class="bill-meta'+(overdue?' overdue':'')+'">'+metaBits+'</span></div>'
-        +'<div class="bill-right"><span class="bill-amt">'+fmtD(b.amt)+'</span>'
+        +'<div class="bill-info"><span class="bill-name">'+b.name+'</span><span class="bill-meta'+(overdue?' overdue':'')+'">'+metaBits+'</span>'+acctSelect+'</div>'
+        +'<div class="bill-right">'+amtHtml
         +'<button class="paid-toggle'+(paid?' is-paid':'')+'" onclick="toggleBillPaid(\''+b.id+'\',\''+month+'\')">'+(paid?'Paid':'Unpaid')+'</button>'
         +'<button class="bill-del" onclick="cancelBill(\''+b.id+'\')" title="Archive / cancel">⏻</button>'
         +'<button class="bill-del" onclick="deleteBill(\''+b.id+'\')" title="Delete permanently">✕</button></div></div>';
@@ -1413,17 +1634,66 @@ function renderIncomeList(){
 /* BUDGET EDITOR */
 function renderBudgetEditor() {
   var groups={Needs:[],Wants:[],Savings:[]};
-  APP.budgets.forEach(function(s,i){ s._i=i; groups[s.bucket].push(s); });
+  APP.budgets.forEach(function(s,i){
+    if(s.bucket!=='Wants' && s.bucket!=='Savings') s.bucket='Needs';
+    s._i=i;
+    groups[s.bucket].push(s);
+  });
   ['Needs','Wants','Savings'].forEach(function(b){
     var html='';
-    groups[b].forEach(function(s){ html+='<div class="budget-edit-row"><span class="budget-edit-label">'+s.cat+'</span><input type="number" class="budget-edit-input" data-idx="'+s._i+'" value="'+s.amt+'" min="0" step="1"></div>'; });
+    if(!groups[b].length) html='<div class="empty">No provisions here yet.</div>';
+    groups[b].forEach(function(s){
+      html+='<div class="budget-edit-row">'
+        +'<input type="text" class="budget-edit-name" data-idx="'+s._i+'" value="'+escHtml(s.cat)+'">'
+        +'<input type="number" class="budget-edit-input" data-idx="'+s._i+'" value="'+s.amt+'" min="0" step="0.01">'
+        +'<button type="button" class="bill-del" onclick="removeBudgetLine('+s._i+')" title="Remove">✕</button>'
+        +'</div>';
+    });
     document.getElementById('edit-'+b.toLowerCase()).innerHTML=html;
   });
 }
+function readBudgetInputs() {
+  var blank=false;
+  document.querySelectorAll('.budget-edit-name').forEach(function(inp){
+    var i=parseInt(inp.getAttribute('data-idx'),10);
+    if(!APP.budgets[i]) return;
+    var name=inp.value.trim();
+    if(!name) blank=true;
+    else APP.budgets[i].cat=name;
+  });
+  document.querySelectorAll('.budget-edit-input').forEach(function(inp){
+    var i=parseInt(inp.getAttribute('data-idx'),10);
+    if(APP.budgets[i]) APP.budgets[i].amt=Math.round((parseFloat(inp.value)||0)*100)/100;
+  });
+  return !blank;
+}
 function saveBudgets() {
-  document.querySelectorAll('.budget-edit-input').forEach(function(inp){ var i=parseInt(inp.getAttribute('data-idx')); if(APP.budgets[i]) APP.budgets[i].amt=parseFloat(inp.value)||0; });
-  persist(); renderSuggested(); renderDash();
+  if(!readBudgetInputs()){ toast('Every provision needs a title.','err'); return; }
+  persist(); renderSuggested(); renderDash(); renderBudgetEditor();
   toast('✦ The provisions have been revised.','ok');
+}
+function addBudgetLine() {
+  var name=document.getElementById('new-budget-name').value.trim();
+  var bucket=document.getElementById('new-budget-bucket').value;
+  var amt=Math.round((parseFloat(document.getElementById('new-budget-amt').value)||0)*100)/100;
+  if(!name){ toast('Name the provision first.','err'); return; }
+  if(bucket!=='Wants' && bucket!=='Savings') bucket='Needs';
+  if(!readBudgetInputs()){ toast('Every provision needs a title.','err'); return; }
+  APP.budgets.push({cat:name, bucket:bucket, amt:amt});
+  document.getElementById('new-budget-name').value='';
+  document.getElementById('new-budget-amt').value='';
+  persist(); renderBudgetEditor(); renderSuggested(); renderDash();
+  toast('✦ '+name+' has been added.','ok');
+}
+function removeBudgetLine(i) {
+  if(!APP.budgets[i]) return;
+  if(!readBudgetInputs()){ toast('Every provision needs a title.','err'); return; }
+  var line=APP.budgets[i];
+  if(!line) return;
+  if(!confirm('Remove "'+line.cat+'" from the provisions? Expenses already logged will stay.')) return;
+  APP.budgets.splice(i,1);
+  persist(); renderBudgetEditor(); renderSuggested(); renderDash();
+  toast('✦ That provision has been removed.','ok');
 }
 
 /* INCOME */
@@ -1621,7 +1891,8 @@ function cloudSignOut() {
 
 function hasLocalLedger() {
   return getExpenses().length > 0 || getBills().length > 0 || getSideIncome().length > 0 ||
-    (APP.payAmt != null && APP.payAmt !== '' && !isNaN(APP.payAmt) && Number(APP.payAmt) > 0);
+    (APP.payAmt != null && APP.payAmt !== '' && !isNaN(APP.payAmt) && Number(APP.payAmt) > 0) ||
+    accountIsSet('checking') || accountIsSet('savings');
 }
 
 function remoteHasLedger(remote) {
@@ -1665,6 +1936,14 @@ function applyRemoteData(remote, showToast) {
   if (settings.k401Pct !== undefined) APP.k401Pct = parseFloat(settings.k401Pct) || 0;
   if (settings.savePct !== undefined) APP.savePct = parseFloat(settings.savePct) || 0;
   if (settings.budgets && settings.budgets.length) APP.budgets = settings.budgets;
+  if (settings.checking !== undefined) {
+    APP.checking = (settings.checking === null || settings.checking === '') ? null : parseFloat(settings.checking);
+    if (isNaN(APP.checking)) APP.checking = null;
+  }
+  if (settings.savings !== undefined) {
+    APP.savings = (settings.savings === null || settings.savings === '') ? null : parseFloat(settings.savings);
+    if (isNaN(APP.savings)) APP.savings = null;
+  }
   recalcIncome();
   persist({ skipCloudWrite: true });
   if (Array.isArray(remote.expenses)) setExpenses(remote.expenses, { skipCloudWrite: true });
@@ -1694,6 +1973,7 @@ function refreshAllViews() {
   try { renderTargets(); } catch (e) {}
   try { renderBudgetEditor(); } catch (e) {}
   try { renderHist(); } catch (e) {}
+  try { renderBank(); } catch (e) {}
   try { buildBillsMonthPicker(); renderBills(); } catch (e) {}
   try { buildIncomeMonthPicker(); renderIncomeList(); } catch (e) {}
 }
@@ -1756,7 +2036,9 @@ function buildBackupPayload() {
       payAmt: APP.payAmt,
       k401Pct: APP.k401Pct || 0,
       savePct: APP.savePct || 0,
-      budgets: APP.budgets || []
+      budgets: APP.budgets || [],
+      checking: (APP.checking!=null && !isNaN(APP.checking)) ? APP.checking : null,
+      savings: (APP.savings!=null && !isNaN(APP.savings)) ? APP.savings : null
     },
     expenses: getExpenses(),
     bills: getBills(),
@@ -1942,9 +2224,9 @@ function buildPDFHTML(type, month, year, exps, inc) {
     +'</div>'
     +'<h2>Bucket Breakdown</h2>'
     +'<div class="bucket-row">'
-    +'<div class="bkt bkt-n"><div class="bkt-label">✦ The Necessities</div><div class="bkt-amt">'+fmtD(nA)+'</div><div class="bkt-sub">Budget: '+fmt(nb)+'</div><div class="bar-wrap"><div class="bar-fill" style="width:'+Math.min(nb>0?Math.round(nA/nb*100):0,100)+'%"></div></div></div>'
-    +'<div class="bkt bkt-w"><div class="bkt-label">✦ The Pleasures</div><div class="bkt-amt">'+fmtD(wA)+'</div><div class="bkt-sub">Budget: '+fmt(wb)+'</div><div class="bar-wrap"><div class="bar-fill" style="width:'+Math.min(wb>0?Math.round(wA/wb*100):0,100)+'%"></div></div></div>'
-    +'<div class="bkt bkt-s"><div class="bkt-label">✦ The Treasury</div><div class="bkt-amt">'+fmtD(sA)+'</div><div class="bkt-sub">Budget: '+fmt(sb)+'</div><div class="bar-wrap"><div class="bar-fill" style="width:'+Math.min(sb>0?Math.round(sA/sb*100):0,100)+'%"></div></div></div>'
+    +'<div class="bkt bkt-n"><div class="bkt-label">✦ The Necessities</div><div class="bkt-amt">'+fmtD(nA)+'</div><div class="bkt-sub">Budget: '+fmtD(nb)+'</div><div class="bar-wrap"><div class="bar-fill" style="width:'+Math.min(nb>0?Math.round(nA/nb*100):0,100)+'%"></div></div></div>'
+    +'<div class="bkt bkt-w"><div class="bkt-label">✦ The Pleasures</div><div class="bkt-amt">'+fmtD(wA)+'</div><div class="bkt-sub">Budget: '+fmtD(wb)+'</div><div class="bar-wrap"><div class="bar-fill" style="width:'+Math.min(wb>0?Math.round(wA/wb*100):0,100)+'%"></div></div></div>'
+    +'<div class="bkt bkt-s"><div class="bkt-label">✦ The Treasury</div><div class="bkt-amt">'+fmtD(sA)+'</div><div class="bkt-sub">Budget: '+fmtD(sb)+'</div><div class="bar-wrap"><div class="bar-fill" style="width:'+Math.min(sb>0?Math.round(sA/sb*100):0,100)+'%"></div></div></div>'
     +'</div>'
     +(filtered.length > 0 ?
       '<h2>All Transactions ('+filtered.length+')</h2>'
