@@ -433,7 +433,7 @@
     <div class="home-links">
       <button class="home-link" onclick="goTab('dash')"><span class="hl-name">Ledger</span><span class="hl-desc">Income, spending, and the savings left over</span></button>
       <button class="home-link" onclick="goTab('income')"><span class="hl-name">Income</span><span class="hl-desc">Paychecks for the month, plus side gigs</span></button>
-      <button class="home-link" onclick="goTab('bills')"><span class="hl-name">Bills</span><span class="hl-desc">Track what's due and what's paid</span></button>
+      <button class="home-link" onclick="goTab('bills')"><span class="hl-name">Bills</span><span class="hl-desc">Bills, the school loan, and the family loan</span></button>
       <button class="home-link" onclick="goTab('log')"><span class="hl-name">Dispatch</span><span class="hl-desc">Log a new expense</span></button>
       <button class="home-link" onclick="goTab('hist')"><span class="hl-name">Chronicle</span><span class="hl-desc">Full transaction history</span></button>
       <button class="home-link" onclick="goTab('reports')"><span class="hl-name">Reports</span><span class="hl-desc">Monthly and yearly breakdowns</span></button>
@@ -457,7 +457,7 @@
   <div class="banner banner-blush" id="d-income-note" style="display:none;"></div>
   <div class="card" id="bank-card">
     <div class="card-title">✦ The Accounts ✦</div>
-    <div class="banner banner-blue" style="font-size:12px;">Checking pays rent, utilities, loans, and the credit card. Savings is the other account. Purchases logged as Credit Card add up in On the card and leave checking only when that bill is paid.</div>
+    <div class="banner banner-blue" style="font-size:12px;">Rent, utilities, renter's insurance, and loans leave checking or savings when you mark them paid. Everything else can sit on the credit card until you pay that bill below.</div>
     <div class="account-grid">
       <div class="stat"><div class="stat-label">Checking</div><div class="stat-value sv-blue" id="bank-checking">—</div></div>
       <div class="stat"><div class="stat-label">Savings</div><div class="stat-value sv-purple" id="bank-savings">—</div></div>
@@ -482,6 +482,68 @@
       <button type="button" class="btn-silver" onclick="adjustBank(-1)">Money out</button>
       <button type="button" class="btn-silver" onclick="setBankExact()">Set to this amount</button>
     </div>
+  </div>
+  <div class="card" id="cardbill-card">
+    <div class="card-title">✦ The Credit Card Bill ✦</div>
+    <div class="banner banner-blue" style="font-size:12px;">This is everything still on the card. It is already in the provisions. Pay Off uses the amount you type, or the whole bill if the amount is blank. Paid Off pays whatever is left. The money leaves checking or savings, and the purchases are not counted again.</div>
+    <div class="stat"><div class="stat-label">Still on the card</div><div class="stat-value sv-rose" id="cardbill-owed">$0.00</div><div class="bill-meta" id="cardbill-note" style="margin-top:4px;"></div></div>
+    <div id="cardbill-list"></div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Pay from</label>
+        <select id="cardbill-account"><option value="checking">Checking</option><option value="savings">Savings</option></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Amount ($)</label>
+        <input type="number" id="cardbill-amt" placeholder="Blank pays the whole bill" step="0.01" min="0">
+      </div>
+    </div>
+    <div class="bank-actions">
+      <button type="button" class="btn-silver" onclick="payOffCard('ledger', false)">Pay Off</button>
+      <button type="button" class="btn-primary" onclick="payOffCard('ledger', true)">Paid Off</button>
+    </div>
+    <div id="cardbill-pays" style="margin-top:10px;"></div>
+    <button class="btn-silver" style="margin-top:10px;" onclick="undoLastCardPay()">↩ Rescind Last Card Payment</button>
+  </div>
+  <div class="card" id="moves-card">
+    <div class="card-title">✦ Transfers &amp; Deposits ✦</div>
+    <div class="banner banner-blue" style="font-size:12px;">A deposit adds money to checking or savings. A transfer moves it from one account to the other. These change the balances only. They do not change the monthly budget.</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">What happened</label>
+        <select id="move-kind" onchange="updateMoveFields()">
+          <option value="deposit">Deposit</option>
+          <option value="transfer">Transfer</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Amount ($)</label>
+        <input type="number" id="move-amt" placeholder="0.00" step="0.01">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" id="move-from-wrap">
+        <label class="form-label">From</label>
+        <select id="move-from"><option value="checking">Checking</option><option value="savings">Savings</option></select>
+      </div>
+      <div class="form-group" id="move-to-wrap">
+        <label class="form-label" id="move-to-label">Into</label>
+        <select id="move-to"><option value="checking">Checking</option><option value="savings" selected>Savings</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Date</label>
+        <input type="date" id="move-date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Note (optional)</label>
+        <input type="text" id="move-note" placeholder="e.g. Moved leftover to savings">
+      </div>
+    </div>
+    <button class="btn-primary" onclick="logMove()">✦ Record It ✦</button>
+    <div id="moves-wrap" style="margin-top:12px;"><div class="empty">No transfers or deposits yet.</div></div>
+    <button class="btn-silver" style="margin-top:10px;" onclick="undoLastMove()">↩ Rescind Last One</button>
   </div>
   <div class="card">
     <span class="card-title-script">The Allocations</span>
@@ -512,7 +574,7 @@
     <div class="form-group">
       <label class="form-label">Method of Payment</label>
       <select id="log-pay"><option>Debit Card</option><option>Credit Card</option><option>Bank Transfer</option><option>Cash</option><option>Other</option></select>
-      <div class="bill-meta" style="margin-top:6px;">Credit Card adds to On the card and counts in the budget. It does not leave checking until you pay the card bill.</div>
+      <div class="bill-meta" style="margin-top:6px;">Credit Card counts in the provisions and adds to the credit card bill. Checking or savings changes only when you pay that bill.</div>
     </div>
     <button class="btn-primary" onclick="saveExpense()">✦ Commit to the Ledger ✦</button>
   </div>
@@ -627,14 +689,18 @@
       <div class="form-group"><label class="form-label">Bucket</label>
         <select id="bill-bucket"><option value="Needs">Needs</option><option value="Wants">Wants</option><option value="Savings">Savings</option></select>
       </div>
-      <div class="form-group"><label class="form-label">Comes out of</label>
+      <div class="form-group" id="bill-account-wrap"><label class="form-label" id="bill-account-label">Comes out of</label>
         <select id="bill-account"><option value="checking">Checking</option><option value="savings">Savings</option></select>
       </div>
     </div>
-    <label style="display:flex;align-items:flex-start;gap:8px;font-family:'EB Garamond',serif;font-size:12.5px;color:var(--ink);margin:4px 0 14px;cursor:pointer;">
-      <input type="checkbox" id="bill-track-only" style="margin-top:2px;">
-      <span><strong>Credit card bill</strong> — the purchases are already logged, so paying this only lowers checking or savings. Leave this unchecked for rent, utilities, and loans. Those count as spending and leave the account when you mark them paid.</span>
-    </label>
+    <div class="form-group">
+      <label class="form-label">How it is paid</label>
+      <select id="bill-source" onchange="updateBillSourceNote()">
+        <option value="bank">Straight from the bank</option>
+        <option value="card" selected>On the credit card</option>
+      </select>
+    </div>
+    <div class="banner banner-blush" id="bill-source-note" style="font-size:12px;">Subscriptions and other spending go on the credit card. They count in the provisions and show on the credit card bill. The bank does not change until you pay that bill. Use Straight from the bank for rent, utilities, renter's insurance, and loans.</div>
     <button class="btn-primary" onclick="addBill()">✦ Add Bill</button>
   </div>
   <div class="card">
@@ -647,6 +713,52 @@
     </div>
     <div id="bills-wrap"><div class="empty">No bills added yet.</div></div>
   </div>
+  <div class="card" id="bcard-card">
+    <div class="card-title">✦ The Credit Card Bill ✦</div>
+    <div class="banner banner-blue" style="font-size:12px;">Charges you put on the card are already in the provisions. Pay Off uses the amount you type, or the whole bill if it is blank. Paid Off pays the rest from checking or savings.</div>
+    <div class="stat"><div class="stat-label">Still on the card</div><div class="stat-value sv-rose" id="bcard-owed">$0.00</div><div class="bill-meta" id="bcard-note" style="margin-top:4px;"></div></div>
+    <div id="bcard-list"></div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Pay from</label>
+        <select id="bcard-account"><option value="checking">Checking</option><option value="savings">Savings</option></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Amount ($)</label>
+        <input type="number" id="bcard-amt" placeholder="Blank pays the whole bill" step="0.01" min="0">
+      </div>
+    </div>
+    <div class="bank-actions">
+      <button type="button" class="btn-silver" onclick="payOffCard('bills', false)">Pay Off</button>
+      <button type="button" class="btn-primary" onclick="payOffCard('bills', true)">Paid Off</button>
+    </div>
+    <div id="bcard-pays" style="margin-top:10px;"></div>
+  </div>
+  <div class="card" id="loans-card">
+    <div class="card-title">✦ The Loans ✦</div>
+    <div class="banner banner-blue" style="font-size:12px;">School Loan is the one for school. Family Loan is the one with a family member. Choose whether you pay them, or they pay you back. Marking it paid lowers the remaining balance. A payment you make leaves checking or savings and counts as spending. Money they pay back lands in the account and is not a paycheck.</div>
+    <div class="form-group"><label class="form-label">Name</label><input type="text" id="loan-name" placeholder="e.g. School Loan, Family Loan"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Which loan</label>
+        <select id="loan-kind"><option value="school">School</option><option value="family">Family</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Who pays</label>
+        <select id="loan-direction"><option value="owe">I pay this</option><option value="owed">They pay me back</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Still left ($)</label><input type="number" id="loan-balance" placeholder="0.00" step="0.01" min="0"></div>
+      <div class="form-group"><label class="form-label">Payment ($)</label><input type="number" id="loan-payment" placeholder="0.00" step="0.01" min="0"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Due Day</label><input type="number" id="loan-day" placeholder="1-31" min="1" max="31"></div>
+      <div class="form-group"><label class="form-label">Account</label>
+        <select id="loan-account"><option value="checking">Checking</option><option value="savings">Savings</option></select>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="addLoan()">✦ Add Loan</button>
+    <div id="loans-wrap" style="margin-top:14px;"><div class="empty">No loans yet.</div></div>
+  </div>
   <div class="card">
     <div class="card-title">✦ Archived Bills ✦</div>
     <div id="bills-archive-wrap"><div class="empty">No archived bills.</div></div>
@@ -657,14 +769,18 @@
 <div class="page" id="pg-income">
   <div class="card">
     <div class="card-title">✦ Log a Paycheck ✦</div>
-    <div class="banner banner-blue" style="font-size:12px;">Add each paycheck for the month it arrives, including the cents. Two or three checks add up for that month. The budget stays the same, and whatever is left is savings. This does not move the savings account.</div>
+    <div class="banner banner-blue" style="font-size:12px;">Add each paycheck for the month it arrives, including the cents. The amount can change from check to check. It lands in checking or savings, whichever you choose. Two or three checks add up for that month. The budget stays the same.</div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Amount ($)</label><input type="number" id="pay-amt" placeholder="0.00" step="0.01"></div>
       <div class="form-group"><label class="form-label">Date</label><input type="date" id="pay-date"></div>
     </div>
+    <div class="form-group">
+      <label class="form-label">Lands in</label>
+      <select id="pay-account"><option value="checking">Checking</option><option value="savings">Savings</option></select>
+    </div>
     <label style="display:flex;align-items:flex-start;gap:8px;font-family:'EB Garamond',serif;font-size:12.5px;color:var(--ink);margin:4px 0 14px;cursor:pointer;">
-      <input type="checkbox" id="pay-to-checking" checked style="margin-top:2px;">
-      <span>This paycheck just landed in checking. Leave this off if that money is already in the checking amount on the Ledger.</span>
+      <input type="checkbox" id="pay-to-account" checked style="margin-top:2px;">
+      <span>Add this paycheck to that account. Leave this off if the money is already included in the balance. If the account is still blank, this paycheck becomes the starting amount.</span>
     </label>
     <button class="btn-primary" onclick="logPaycheck()">✦ Add Paycheck ✦</button>
   </div>
@@ -880,17 +996,40 @@ var APP = {
   defaultBudgets: [
     {cat:'Rent / Mortgage',bucket:'Needs',amt:0},{cat:'Groceries',bucket:'Needs',amt:0},
     {cat:'Car Payment',bucket:'Needs',amt:0},{cat:'Car Insurance',bucket:'Needs',amt:0},
-    {cat:'Utilities',bucket:'Needs',amt:0},{cat:'Internet / Phone',bucket:'Needs',amt:0},
+    {cat:'Utilities',bucket:'Needs',amt:0},{cat:"Renter's Insurance",bucket:'Needs',amt:0},{cat:'Internet / Phone',bucket:'Needs',amt:0},
     {cat:'Reserved Parking',bucket:'Needs',amt:0},
     {cat:'Dining Out',bucket:'Wants',amt:0},
     {cat:'Entertainment',bucket:'Wants',amt:0},
     {cat:'Subscriptions',bucket:'Wants',amt:0},{cat:'Shopping / Clothing',bucket:'Wants',amt:0},
     {cat:'Personal Care',bucket:'Wants',amt:0},
+    {cat:'School Loan',bucket:'Needs',amt:0},{cat:'Family Loan',bucket:'Needs',amt:0},
     {cat:'Emergency Fund',bucket:'Savings',amt:0},{cat:'Travel Savings',bucket:'Savings',amt:0}
   ],
   budgets: []
 };
 
+function ensureLoanLines(list) {
+  var lines = (list || []).slice();
+  var seen = false;
+  try { seen = localStorage.getItem('coquette_loanlines') === '1'; } catch (e) {}
+  if (seen) return lines;
+  [{cat:'School Loan', bucket:'Needs', amt:0},{cat:'Family Loan', bucket:'Needs', amt:0}].forEach(function(line) {
+    var has = lines.some(function(b){ return String(b.cat || '').toLowerCase() === line.cat.toLowerCase(); });
+    if (!has) lines.push(line);
+  });
+  try { localStorage.setItem('coquette_loanlines', '1'); } catch (e) {}
+  return lines;
+}
+function ensureRentersLine(list) {
+  var lines = (list || []).slice();
+  var seen = false;
+  try { seen = localStorage.getItem('coquette_rentersline') === '1'; } catch (e) {}
+  if (seen) return lines;
+  var has = lines.some(function(b){ return /renter/i.test(String(b.cat||'')) && /insur/i.test(String(b.cat||'')); });
+  if (!has) lines.push({cat:"Renter's Insurance", bucket:'Needs', amt:0});
+  try { localStorage.setItem('coquette_rentersline', '1'); } catch (e) {}
+  return lines;
+}
 function dropPayrollPremiums(list) {
   return (list || []).filter(function(b) {
     var name = String(b.cat || '').toLowerCase();
@@ -913,7 +1052,7 @@ function load() {
     updatePayFreqLabel();
     var b = localStorage.getItem('coquette_budgets');
     APP.budgets = b ? JSON.parse(b) : JSON.parse(JSON.stringify(APP.defaultBudgets));
-    APP.budgets = dropPayrollPremiums(APP.budgets);
+    APP.budgets = ensureRentersLine(ensureLoanLines(dropPayrollPremiums(APP.budgets)));
     var ck = localStorage.getItem('coquette_checking');
     APP.checking = (ck===null || ck==='') ? null : parseFloat(ck);
     if (isNaN(APP.checking)) APP.checking = null;
@@ -1029,7 +1168,7 @@ function goTab(name) {
   if(name==='hist')   renderHist();
   if(name==='annual') renderAnnual();
   if(name==='reports'){ buildReportPickers(); }
-  if(name==='bills')  { buildBillsMonthPicker(); renderBills(); }
+  if(name==='bills')  { buildBillsMonthPicker(); renderBills(); renderLoans(); }
   if(name==='income') { buildIncomeMonthPicker(); renderIncomeList(); buildPayMonthPicker(); renderPaychecks(); if(!document.getElementById('inc-date').value) document.getElementById('inc-date').value=new Date().toISOString().slice(0,10); if(!document.getElementById('pay-date').value) document.getElementById('pay-date').value=new Date().toISOString().slice(0,10); }
   if(name==='setup')  { renderTargets(); renderBudgetEditor(); }
   closeMenu();
@@ -1399,18 +1538,19 @@ function addBill(){
   var day=parseInt(document.getElementById('bill-day').value);
   var bucket=document.getElementById('bill-bucket').value;
   var account=document.getElementById('bill-account').value==='savings'?'savings':'checking';
-  var trackOnly=document.getElementById('bill-track-only').checked;
+  var onCard=document.getElementById('bill-source').value==='card';
   if(!name){toast('Please name the bill.','err');return;}
   if(!amt||amt<=0){toast('Please enter a valid amount.','err');return;}
   if(!day||day<1||day>31){toast('Please enter a due day between 1 and 31.','err');return;}
   var bills=getBills();
   BILL_SEQ += 1;
-  bills.push({id:'b'+Date.now()+'-'+BILL_SEQ, name:name, amt:amt, dueDay:day, bucket:bucket, account:account, trackOnly:trackOnly});
+  bills.push({id:'b'+Date.now()+'-'+BILL_SEQ, name:name, amt:amt, dueDay:day, bucket:bucket, account:account, trackOnly:false, onCard:onCard});
   setBills(bills);
   document.getElementById('bill-name').value='';
   document.getElementById('bill-amt').value='';
   document.getElementById('bill-day').value='';
-  document.getElementById('bill-track-only').checked=false;
+  document.getElementById('bill-source').value='card';
+  updateBillSourceNote();
   toast('✦ The bill has been added.','ok');
   renderBills();
 }
@@ -1465,13 +1605,96 @@ function shiftAccount(which, delta, opts){
   setAccountBalance(which, accountBalance(which)+Number(delta), opts);
   return true;
 }
+function updateBillSourceNote(){
+  var src=document.getElementById('bill-source');
+  var note=document.getElementById('bill-source-note');
+  var wrap=document.getElementById('bill-account-wrap');
+  if(!src || !note) return;
+  var card=src.value==='card';
+  if(wrap) wrap.style.display=card?'none':'';
+  note.textContent=card
+    ? 'Subscriptions and other spending go on the credit card. Marking one charged counts it in the provisions and adds it to the credit card bill. The bank does not change until you pay that bill.'
+    : 'Use this for rent, utilities, renter\'s insurance, and loans. Marking it paid counts as spending and the money leaves checking or savings.';
+}
+function getCardPay(){ try{ var d=localStorage.getItem('coquette_cardpay'); return d?JSON.parse(d):[]; }catch(e){return[];} }
+function setCardPay(a, opts){ opts=opts||{}; try{ localStorage.setItem('coquette_cardpay',JSON.stringify(a)); }catch(e){} if(!opts.skipCloudWrite){ try{ localStorage.setItem(SYNC_TIME_KEY, new Date().toISOString()); }catch(e){} scheduleCloudWrite(); updateSyncStatus(); } }
+function payOffCard(where, full){
+  var figs=creditCardFigures();
+  var owed=figs.owed;
+  var prefix=where==='bills'?'bcard-':'cardbill-';
+  var amtEl=document.getElementById(prefix+'amt');
+  var acctEl=document.getElementById(prefix+'account');
+  if(!(owed>0)){ toast('Nothing is waiting on the card.','err'); return; }
+  var raw=amtEl ? amtEl.value : '';
+  var amt=(full || raw==='') ? owed : Math.round((parseFloat(raw)||0)*100)/100;
+  if(!(amt>0)){ toast('Enter the amount to pay.','err'); return; }
+  if(amt>owed) amt=owed;
+  var account=acctEl && acctEl.value==='savings' ? 'savings' : 'checking';
+  if(!accountIsSet(account)){ toast('Set '+accountName(account).toLowerCase()+' on the Ledger first.','err'); return; }
+  shiftAccount(account, -amt);
+  var pays=getCardPay();
+  var today=new Date().toISOString().slice(0,10);
+  pays.push({id:'c'+Date.now(), amount:amt, date:today, month:today.slice(0,7), account:account, moved:true});
+  setCardPay(pays);
+  if(amtEl) amtEl.value='';
+  renderDash();
+  toast('✦ '+fmtD(amt)+' left '+accountName(account)+'. The purchases stay in the provisions.','ok');
+}
+function undoLastCardPay(){
+  var pays=getCardPay();
+  if(!pays.length){ toast('No card payment to rescind.','err'); return; }
+  var removed=pays.pop();
+  var account=removed && removed.account==='savings' ? 'savings' : 'checking';
+  if(removed && removed.moved && accountIsSet(account)) shiftAccount(account, Number(removed.amount)||0);
+  setCardPay(pays);
+  renderDash();
+  toast('↩ Last card payment rescinded.','ok');
+}
+function renderCardBill(){
+    var figsAll=creditCardFigures();
+  [['cardbill','dash-month'],['bcard','bills-month']].forEach(function(pair){
+    var owedEl=document.getElementById(pair[0]+'-owed');
+    if(!owedEl) return;
+    var monthEl=document.getElementById(pair[1]);
+    var month=monthEl && monthEl.value ? monthEl.value : curMonth();
+    var monthFigs=creditCardFigures(month);
+    owedEl.textContent=fmtD(figsAll.owed);
+    owedEl.className='stat-value '+(figsAll.owed>0?'sv-rose':'sv-green');
+    var note=document.getElementById(pair[0]+'-note');
+    if(note) note.textContent=fmtD(monthFigs.monthCharges)+' charged this month · already in the provisions';
+    var list=document.getElementById(pair[0]+'-list');
+    if(list){
+      var rows=getExpenses().filter(function(e){ return e.payment==='Credit Card' && e.month===month; });
+      if(!rows.length) list.innerHTML='<div class="empty">No credit card charges for this month.</div>';
+      else {
+        var html='';
+        rows.slice().reverse().forEach(function(e){
+          html+='<div class="income-row"><div class="income-info"><span class="income-desc">'+escHtml(e.description||e.category)+'</span><span class="income-meta">'+e.date+' · in the provisions</span></div><span class="income-amt">'+fmtD(e.amount)+'</span></div>';
+        });
+        list.innerHTML=html;
+      }
+    }
+    var paysEl=document.getElementById(pair[0]+'-pays');
+    if(paysEl){
+      var pays=getCardPay().filter(function(p){ return p.month===month; });
+      if(!pays.length) paysEl.innerHTML='';
+      else {
+        var ph='';
+        pays.slice().reverse().forEach(function(p){
+          ph+='<div class="income-row"><div class="income-info"><span class="income-desc">Card payment</span><span class="income-meta">'+p.date+' · from '+accountName(p.account)+'</span></div><span class="income-amt">'+fmtD(p.amount)+'</span></div>';
+        });
+        paysEl.innerHTML=ph;
+      }
+    }
+  });
+}
 function creditCardFigures(month){
   var charges=0, monthCharges=0, paidDown=0;
   getExpenses().forEach(function(e){
     if(e.payment!=='Credit Card') return;
     var amt=Number(e.amount)||0;
     charges+=amt;
-    if(!month || e.month===month) monthCharges+=amt;
+    if(month && e.month===month) monthCharges+=amt;
   });
   var bills=getBills();
   getBillPay().forEach(function(p){
@@ -1479,15 +1702,16 @@ function creditCardFigures(month){
     var b=bills.find(function(x){return x.id===p.billId;});
     if(b && b.trackOnly) paidDown+=Number(p.amount)||0;
   });
+  getCardPay().forEach(function(p){ paidDown+=Number(p.amount)||0; });
   return {
-    owed: Math.round((charges-paidDown)*100)/100,
+    owed: Math.max(0, Math.round((charges-paidDown)*100)/100),
     monthCharges: Math.round(monthCharges*100)/100
   };
 }
 function unpaidForAccount(account, month){
   var total=0;
   getBills().forEach(function(b){
-    if(b.endMonth) return;
+    if(b.endMonth || b.onCard || b.trackOnly) return;
     if(billAccountOf(b)!==account) return;
     if(isBillPaid(b.id, month)) return;
     total+=Number(b.amt)||0;
@@ -1522,6 +1746,8 @@ function renderBank(){
   if(sDue>0) bits.push(fmtD(sDue)+' still to leave savings');
   if(bits.length){ note.style.display=''; note.textContent='✦ '+bits.join(' · '); }
   else { note.style.display='none'; note.textContent=''; }
+  renderCardBill();
+  renderMoves();
 }
 function adjustBank(sign){
   var amt=Math.round((parseFloat(document.getElementById('bank-amt').value)||0)*100)/100;
@@ -1546,11 +1772,91 @@ function setBankExact(){
   document.getElementById('bank-amt').value='';
   toast('✦ '+accountName(which)+' set to '+fmtD(amt)+'.','ok');
 }
+function updateMoveFields(){
+  var kind=document.getElementById('move-kind');
+  if(!kind) return;
+  var fromWrap=document.getElementById('move-from-wrap');
+  var toWrap=document.getElementById('move-to-wrap');
+  var toLabel=document.getElementById('move-to-label');
+  var deposit=kind.value!=='transfer';
+  if(fromWrap) fromWrap.style.display=deposit?'none':'';
+  if(toWrap) toWrap.style.display='';
+  if(toLabel) toLabel.textContent=deposit?'Into':'Into';
+}
+function getMoves(){ try{ var d=localStorage.getItem('coquette_moves'); return d?JSON.parse(d):[]; }catch(e){return[];} }
+function setMoves(a, opts){ opts=opts||{}; try{ localStorage.setItem('coquette_moves',JSON.stringify(a)); }catch(e){} if(!opts.skipCloudWrite){ try{ localStorage.setItem(SYNC_TIME_KEY, new Date().toISOString()); }catch(e){} scheduleCloudWrite(); updateSyncStatus(); } }
+function logMove(){
+  var kind=document.getElementById('move-kind').value==='transfer'?'transfer':'deposit';
+  var amt=Math.round((parseFloat(document.getElementById('move-amt').value)||0)*100)/100;
+  var date=document.getElementById('move-date').value || new Date().toISOString().slice(0,10);
+  var note=(document.getElementById('move-note').value||'').trim();
+  var from=document.getElementById('move-from').value==='savings'?'savings':'checking';
+  var to=document.getElementById('move-to').value==='savings'?'savings':'checking';
+  if(!(amt>0)){ toast('Enter an amount.','err'); return; }
+  if(kind==='transfer'){
+    if(from===to){ toast('A transfer needs two different accounts.','err'); return; }
+    if(!accountIsSet(from) || !accountIsSet(to)){ toast('Set both checking and savings first.','err'); return; }
+    shiftAccount(from, -amt);
+    shiftAccount(to, amt);
+  } else {
+    if(accountIsSet(to)) shiftAccount(to, amt);
+    else setAccountBalance(to, amt);
+  }
+  var moves=getMoves();
+  moves.push({id:'m'+Date.now(), kind:kind, amount:amt, date:date, month:date.slice(0,7), from:from, to:to, note:note});
+  setMoves(moves);
+  document.getElementById('move-amt').value='';
+  document.getElementById('move-note').value='';
+  renderMoves();
+  if(kind==='transfer') toast('✦ '+fmtD(amt)+' moved from '+accountName(from)+' to '+accountName(to)+'.','ok');
+  else toast('✦ '+fmtD(amt)+' deposited to '+accountName(to)+'.','ok');
+}
+function undoLastMove(){
+  var moves=getMoves();
+  if(!moves.length){ toast('No transfers or deposits to rescind.','err'); return; }
+  var removed=moves.pop();
+  var amt=Number(removed.amount)||0;
+  if(removed.kind==='transfer'){
+    if(accountIsSet(removed.to)) shiftAccount(removed.to, -amt);
+    if(accountIsSet(removed.from)) shiftAccount(removed.from, amt);
+  } else if(accountIsSet(removed.to)) {
+    shiftAccount(removed.to, -amt);
+  }
+  setMoves(moves);
+  renderMoves();
+  toast('↩ Last transfer or deposit rescinded.','ok');
+}
+function renderMoves(){
+  var wrap=document.getElementById('moves-wrap');
+  if(!wrap) return;
+  updateMoveFields();
+  var monthEl=document.getElementById('dash-month');
+  var month=monthEl && monthEl.value ? monthEl.value : curMonth();
+  var rows=getMoves().filter(function(e){ return e.month===month; });
+  if(!rows.length){ wrap.innerHTML='<div class="empty">No transfers or deposits for this month.</div>'; return; }
+  var html='';
+  rows.slice().reverse().forEach(function(e){
+    var label=e.kind==='transfer'
+      ? 'Transfer · '+accountName(e.from)+' to '+accountName(e.to)
+      : 'Deposit · '+accountName(e.to);
+    html+='<div class="income-row"><div class="income-info"><span class="income-desc">'+label+'</span><span class="income-meta">'+e.date+(e.note?' · '+escHtml(e.note):'')+'</span></div><span class="income-amt">'+(e.kind==='transfer'?fmtD(e.amount):'+'+fmtD(e.amount))+'</span></div>';
+  });
+  wrap.innerHTML=html;
+}
 function setBillAccount(id, account){
   var bills=getBills();
   var b=bills.find(function(x){return x.id===id;});
   if(!b) return;
   b.account=account==='savings'?'savings':'checking';
+  setBills(bills);
+  renderBills();
+}
+function setBillOnCard(id, source){
+  var bills=getBills();
+  var b=bills.find(function(x){return x.id===id;});
+  if(!b) return;
+  b.onCard=source==='card';
+  if(b.onCard) b.trackOnly=false;
   setBills(bills);
   renderBills();
 }
@@ -1576,6 +1882,18 @@ function toggleBillPaid(id,month){
     if(!(amt>0)){ toast('Enter the amount before marking it paid.','err'); return; }
     var account=billAccountOf(bill);
     var moved=false;
+    if(bill.onCard){
+      if(existing){ existing.paid=true; existing.amount=amt; existing.account=account; existing.moved=false; }
+      else { pay.push({billId:id, month:month, paid:true, amount:amt, account:account, moved:false}); }
+      setBillPay(pay);
+      var cardExps=getExpenses();
+      if(!cardExps.some(function(e){return e.billId===id && e.month===month;})){
+        var cardDay=Math.min(bill.dueDay, daysInMonth(month));
+        cardExps.push({id:'exp-bill-'+id+'-'+month, month:month, date:month+'-'+String(cardDay).padStart(2,'0'), category:bill.name, description:bill.name+' (card)', bucket:bill.bucket||'Needs', amount:amt, payment:'Credit Card', billId:id});
+        setExpenses(cardExps);
+      }
+      toast('✦ '+fmtD(amt)+' is on the credit card and in the provisions. The bank moves when you pay the card bill.','ok');
+    } else {
     if(accountIsSet(account)){
       shiftAccount(account, -amt);
       moved=true;
@@ -1594,6 +1912,7 @@ function toggleBillPaid(id,month){
       toast(moved ? '✦ '+fmtD(amt)+' left '+accountName(account)+' and was added to spending.' : '✦ Added to spending. Set '+accountName(account).toLowerCase()+' on the Ledger so the next payment can lower it.', moved?'ok':'warn');
     } else {
       toast(moved ? '✦ '+fmtD(amt)+' left '+accountName(account)+'. The card purchases were already in the budget.' : '✦ Marked paid. Set '+accountName(account).toLowerCase()+' on the Ledger so this payment can lower it.', moved?'ok':'warn');
+    }
     }
   } else {
     var backAccount=(existing && existing.account==='savings') ? 'savings' : 'checking';
@@ -1632,18 +1951,25 @@ function renderBills(){
       var overdue = isCurrentMonth && !paid && b.dueDay<todayDay;
       var fromAcct=billAccountOf(b);
       if(paid && payRec && (payRec.account==='checking' || payRec.account==='savings')) fromAcct=payRec.account;
-      var metaBits='Due day '+b.dueDay+(overdue?' · overdue':'')+' · '+(paid?'paid from ':'from ')+accountName(fromAcct)+(b.trackOnly?' · credit card':'');
-      var acctSelect = paid ? '' :
+      var metaBits=b.onCard
+        ? 'Due day '+b.dueDay+(overdue?' · overdue':'')+' · on the credit card'
+        : 'Due day '+b.dueDay+(overdue?' · overdue':'')+' · '+(paid?'paid from ':'from ')+accountName(fromAcct)+(b.trackOnly?' · credit card payoff':'');
+      var acctSelect = (paid || b.onCard) ? '' :
         '<select class="bill-account" onchange="setBillAccount(\''+b.id+'\', this.value)">'
         +'<option value="checking"'+(billAccountOf(b)==='checking'?' selected':'')+'>Checking</option>'
         +'<option value="savings"'+(billAccountOf(b)==='savings'?' selected':'')+'>Savings</option></select>';
+      var sourceSelect = paid ? '' :
+        '<select class="bill-account" onchange="setBillOnCard(\''+b.id+'\', this.value)">'
+        +'<option value="bank"'+(b.onCard?'':' selected')+'>From the bank</option>'
+        +'<option value="card"'+(b.onCard?' selected':'')+'>On the card</option></select>';
       var amtHtml = paid
         ? '<span class="bill-amt">'+fmtD(shownAmt)+'</span>'
         : '<input type="number" class="bill-amt-input" value="'+b.amt+'" step="0.01" min="0" onchange="setBillAmount(\''+b.id+'\', this.value)">';
+      var btnLabel = paid ? (b.onCard ? 'Charged' : 'Paid') : (b.onCard ? 'Charge' : 'Unpaid');
       html+='<div class="bill-row">'
-        +'<div class="bill-info"><span class="bill-name">'+b.name+'</span><span class="bill-meta'+(overdue?' overdue':'')+'">'+metaBits+'</span>'+acctSelect+'</div>'
+        +'<div class="bill-info"><span class="bill-name">'+b.name+'</span><span class="bill-meta'+(overdue?' overdue':'')+'">'+metaBits+'</span>'+sourceSelect+acctSelect+'</div>'
         +'<div class="bill-right">'+amtHtml
-        +'<button class="paid-toggle'+(paid?' is-paid':'')+'" onclick="toggleBillPaid(\''+b.id+'\',\''+month+'\')">'+(paid?'Paid':'Unpaid')+'</button>'
+        +'<button class="paid-toggle'+(paid?' is-paid':'')+'" onclick="toggleBillPaid(\''+b.id+'\',\''+month+'\')">'+btnLabel+'</button>'
         +'<button class="bill-del" onclick="cancelBill(\''+b.id+'\')" title="Archive / cancel">⏻</button>'
         +'<button class="bill-del" onclick="deleteBill(\''+b.id+'\')" title="Delete permanently">✕</button></div></div>';
     });
@@ -1666,6 +1992,175 @@ function renderBills(){
     });
     document.getElementById('bills-archive-wrap').innerHTML=ah;
   }
+  renderLoans();
+  renderCardBill();
+}
+
+function defaultLoans(){
+  return [
+    {id:'loan-school', name:'School Loan', kind:'school', direction:'owe', balance:0, payment:0, dueDay:1, account:'checking'},
+    {id:'loan-family', name:'Family Loan', kind:'family', direction:'owe', balance:0, payment:0, dueDay:1, account:'checking'}
+  ];
+}
+function getLoans(){ try{ var d=localStorage.getItem('coquette_loans'); if(d===null) return null; return JSON.parse(d); }catch(e){ return []; } }
+function setLoans(a, opts){ opts=opts||{}; try{ localStorage.setItem('coquette_loans',JSON.stringify(a)); }catch(e){} if(!opts.skipCloudWrite){ try{ localStorage.setItem(SYNC_TIME_KEY, new Date().toISOString()); }catch(e){} scheduleCloudWrite(); updateSyncStatus(); } }
+function loansOrSeed(){
+  var list=getLoans();
+  if(list===null){ list=defaultLoans(); setLoans(list, {skipCloudWrite:true}); }
+  return list;
+}
+function getLoanPay(){ try{ var d=localStorage.getItem('coquette_loanpay'); return d?JSON.parse(d):[]; }catch(e){return[];} }
+function setLoanPay(a, opts){ opts=opts||{}; try{ localStorage.setItem('coquette_loanpay',JSON.stringify(a)); }catch(e){} if(!opts.skipCloudWrite){ try{ localStorage.setItem(SYNC_TIME_KEY, new Date().toISOString()); }catch(e){} scheduleCloudWrite(); updateSyncStatus(); } }
+var LOAN_SEQ=0;
+function addLoan(){
+  var name=document.getElementById('loan-name').value.trim();
+  var kind=document.getElementById('loan-kind').value==='family'?'family':'school';
+  var direction=document.getElementById('loan-direction').value==='owed'?'owed':'owe';
+  var balance=Math.round((parseFloat(document.getElementById('loan-balance').value)||0)*100)/100;
+  var payment=Math.round((parseFloat(document.getElementById('loan-payment').value)||0)*100)/100;
+  var day=parseInt(document.getElementById('loan-day').value,10)||1;
+  var account=document.getElementById('loan-account').value==='savings'?'savings':'checking';
+  if(!name){ toast('Name the loan first.','err'); return; }
+  if(day<1) day=1; if(day>31) day=31;
+  if(balance<0) balance=0; if(payment<0) payment=0;
+  var loans=loansOrSeed();
+  LOAN_SEQ+=1;
+  loans.push({id:'l'+Date.now()+'-'+LOAN_SEQ, name:name, kind:kind, direction:direction, balance:balance, payment:payment, dueDay:day, account:account});
+  setLoans(loans);
+  document.getElementById('loan-name').value='';
+  document.getElementById('loan-balance').value='';
+  document.getElementById('loan-payment').value='';
+  document.getElementById('loan-day').value='';
+  renderLoans();
+  toast('✦ '+name+' has been added.','ok');
+}
+function patchLoan(id, patch){
+  var loans=loansOrSeed();
+  var loan=loans.find(function(x){return x.id===id;});
+  if(!loan) return;
+  if(patch.name!=null){ var name=String(patch.name).trim(); if(!name){ toast('The loan needs a name.','err'); renderLoans(); return; } loan.name=name; }
+  if(patch.kind) loan.kind=patch.kind==='family'?'family':'school';
+  if(patch.direction) loan.direction=patch.direction==='owed'?'owed':'owe';
+  if(patch.balance!=null) loan.balance=Math.max(0, Math.round((parseFloat(patch.balance)||0)*100)/100);
+  if(patch.payment!=null) loan.payment=Math.max(0, Math.round((parseFloat(patch.payment)||0)*100)/100);
+  if(patch.dueDay!=null){ var day=parseInt(patch.dueDay,10)||1; if(day<1) day=1; if(day>31) day=31; loan.dueDay=day; }
+  if(patch.account) loan.account=patch.account==='savings'?'savings':'checking';
+  setLoans(loans);
+  renderLoans();
+}
+function loanPayRecord(id, month){
+  return getLoanPay().find(function(p){ return p.loanId===id && p.month===month; });
+}
+function reverseLoanPayment(loan, payRec){
+  if(!payRec || !payRec.paid) return;
+  var account=payRec.account==='savings'?'savings':'checking';
+  var amt=Number(payRec.amount)||0;
+  var applied=Number(payRec.applied)||0;
+  if(payRec.moved && amt>0 && accountIsSet(account)) shiftAccount(account, payRec.direction==='owed' ? -amt : amt);
+  if(loan && applied>0) loan.balance=Math.round(((Number(loan.balance)||0)+applied)*100)/100;
+  if(payRec.direction!=='owed'){
+    setExpenses(getExpenses().filter(function(e){ return !(e.loanId===payRec.loanId && e.month===payRec.month); }), {skipCloudWrite:true});
+  }
+}
+function toggleLoanPaid(id, month){
+  var loans=loansOrSeed();
+  var loan=loans.find(function(x){return x.id===id;});
+  if(!loan){ toast('That loan could not be found.','err'); return; }
+  var pay=getLoanPay();
+  var existing=pay.find(function(p){return p.loanId===id && p.month===month;});
+  var nowPaid=existing ? !existing.paid : true;
+  if(nowPaid){
+    var amt=Math.round((Number(loan.payment)||0)*100)/100;
+    if(!(amt>0)){ toast('Enter the payment before marking it paid.','err'); return; }
+    var account=loan.account==='savings'?'savings':'checking';
+    var direction=loan.direction==='owed'?'owed':'owe';
+    var applied=Math.min(amt, Math.max(0, Number(loan.balance)||0));
+    applied=Math.round(applied*100)/100;
+    loan.balance=Math.round(((Number(loan.balance)||0)-applied)*100)/100;
+    var moved=false;
+    if(direction==='owed'){
+      if(accountIsSet(account)) shiftAccount(account, amt);
+      else setAccountBalance(account, amt);
+      moved=true;
+    } else if(accountIsSet(account)){
+      shiftAccount(account, -amt);
+      moved=true;
+    }
+    if(existing){ existing.paid=true; existing.amount=amt; existing.account=account; existing.direction=direction; existing.applied=applied; existing.moved=moved; }
+    else pay.push({loanId:id, month:month, paid:true, amount:amt, account:account, direction:direction, applied:applied, moved:moved});
+    setLoans(loans, {skipCloudWrite:true});
+    setLoanPay(pay);
+    if(direction==='owe'){
+      var exps=getExpenses();
+      if(!exps.some(function(e){return e.loanId===id && e.month===month;})){
+        var day=Math.min(loan.dueDay||1, daysInMonth(month));
+        exps.push({id:'exp-loan-'+id+'-'+month, month:month, date:month+'-'+String(day).padStart(2,'0'), category:loan.name, description:loan.name+' (loan)', bucket:'Needs', amount:amt, payment:'Loan Payment', loanId:id});
+        setExpenses(exps);
+      }
+      toast(moved ? '✦ '+fmtD(amt)+' left '+accountName(account)+' and was added to spending.' : '✦ Added to spending. Set '+accountName(account).toLowerCase()+' on the Ledger so the next payment can lower it.', moved?'ok':'warn');
+      setTimeout(function(){ checkBudgetAlert('Needs', month); }, 1800);
+    } else {
+      toast('✦ '+fmtD(amt)+' landed in '+accountName(account)+'. This is not counted as a paycheck.', 'ok');
+    }
+  } else {
+    reverseLoanPayment(loan, existing);
+    if(existing){ existing.paid=false; existing.moved=false; existing.applied=0; }
+    setLoans(loans, {skipCloudWrite:true});
+    setLoanPay(pay);
+    toast('↩ Loan payment marked unpaid.','ok');
+  }
+  renderLoans();
+  renderDash();
+}
+function deleteLoan(id){
+  var loans=loansOrSeed();
+  var loan=loans.find(function(x){return x.id===id;});
+  if(!loan) return;
+  if(!confirm('Remove "'+loan.name+'"? Payments already recorded will be undone.')) return;
+  var pay=getLoanPay();
+  pay.filter(function(p){return p.loanId===id && p.paid;}).forEach(function(p){ reverseLoanPayment(loan, p); });
+  setLoanPay(pay.filter(function(p){return p.loanId!==id;}), {skipCloudWrite:true});
+  setLoans(loans.filter(function(x){return x.id!==id;}));
+  renderLoans();
+  renderDash();
+  toast('✦ The loan has been removed.','ok');
+}
+function renderLoans(){
+  var wrap=document.getElementById('loans-wrap');
+  if(!wrap) return;
+  var monthEl=document.getElementById('bills-month');
+  var month=monthEl && monthEl.value ? monthEl.value : curMonth();
+  var loans=loansOrSeed();
+  if(!loans.length){ wrap.innerHTML='<div class="empty">No loans yet. Add the school loan or the family loan above.</div>'; return; }
+  var todayDay=new Date().getDate();
+  var isCurrent=month===curMonth();
+  var html='';
+  loans.forEach(function(loan){
+    var payRec=loanPayRecord(loan.id, month);
+    var paid=!!(payRec && payRec.paid);
+    var overdue=isCurrent && !paid && loan.dueDay<todayDay && Number(loan.payment)>0;
+    var kindLabel=loan.kind==='family'?'Family':'School';
+    var who=loan.direction==='owed'?'They pay me back':'I pay this';
+    var acct=loan.account==='savings'?'savings':'checking';
+    html+='<div class="bill-row" style="align-items:flex-start;">'
+      +'<div class="bill-info" style="flex:1;">'
+      +'<input type="text" value="'+escHtml(loan.name)+'" '+(paid?'disabled':'')+' onchange="patchLoan(\''+loan.id+'\',{name:this.value})" style="width:100%;margin-bottom:6px;">'
+      +'<span class="bill-meta'+(overdue?' overdue':'')+'">'+kindLabel+' · '+(paid?'paid':'')+(paid?'':' '+who)+(overdue?' · overdue':'')+' · '+(loan.direction==='owed'?'lands in ':'leaves ')+accountName(paid && payRec ? payRec.account : acct)+'</span>'
+      +'<div class="form-row" style="margin-top:8px;">'
+      +'<div class="form-group"><label class="form-label">Who pays</label><select '+(paid?'disabled':'')+' onchange="patchLoan(\''+loan.id+'\',{direction:this.value})"><option value="owe"'+(loan.direction!=='owed'?' selected':'')+'>I pay this</option><option value="owed"'+(loan.direction==='owed'?' selected':'')+'>They pay me back</option></select></div>'
+      +'<div class="form-group"><label class="form-label">Account</label><select '+(paid?'disabled':'')+' onchange="patchLoan(\''+loan.id+'\',{account:this.value})"><option value="checking"'+(acct==='checking'?' selected':'')+'>Checking</option><option value="savings"'+(acct==='savings'?' selected':'')+'>Savings</option></select></div>'
+      +'</div>'
+      +'<div class="form-row">'
+      +'<div class="form-group"><label class="form-label">Still left ($)</label><input type="number" step="0.01" min="0" value="'+loan.balance+'" onchange="patchLoan(\''+loan.id+'\',{balance:this.value})"></div>'
+      +'<div class="form-group"><label class="form-label">Payment ($)</label><input type="number" step="0.01" min="0" value="'+loan.payment+'" '+(paid?'disabled':'')+' onchange="patchLoan(\''+loan.id+'\',{payment:this.value})"></div>'
+      +'</div>'
+      +'</div>'
+      +'<div class="bill-right">'
+      +'<button class="paid-toggle'+(paid?' is-paid':'')+'" onclick="toggleLoanPaid(\''+loan.id+'\',\''+month+'\')">'+(paid?'Paid':'Unpaid')+'</button>'
+      +'<button class="bill-del" onclick="deleteLoan(\''+loan.id+'\')" title="Remove">✕</button>'
+      +'</div></div>';
+  });
+  wrap.innerHTML=html;
 }
 
 /* SIDE INCOME */
@@ -1692,27 +2187,33 @@ function buildPayMonthPicker(){
 function logPaycheck(){
   var amt=Math.round((parseFloat(document.getElementById('pay-amt').value)||0)*100)/100;
   var date=document.getElementById('pay-date').value || new Date().toISOString().slice(0,10);
-  var toChecking=document.getElementById('pay-to-checking').checked;
+  var account=document.getElementById('pay-account').value==='savings'?'savings':'checking';
+  var land=document.getElementById('pay-to-account').checked;
   if(!(amt>0)){ toast('Enter the paycheck amount.','err'); return; }
   var added=false;
-  if(toChecking && accountIsSet('checking')){ shiftAccount('checking', amt); added=true; }
+  if(land){
+    if(accountIsSet(account)) shiftAccount(account, amt);
+    else setAccountBalance(account, amt);
+    added=true;
+  }
   var entries=getPaychecks();
-  entries.push({id:'p'+Date.now(), amount:amt, date:date, month:date.slice(0,7), addedToChecking:added});
+  entries.push({id:'p'+Date.now(), amount:amt, date:date, month:date.slice(0,7), account:account, addedToAccount:added, addedToChecking:added && account==='checking'});
   setPaychecks(entries);
   document.getElementById('pay-amt').value='';
   buildPayMonthPicker();
   var sel=document.getElementById('pay-month'); if(sel) sel.value=date.slice(0,7);
   renderPaychecks();
   renderDash();
-  if(!toChecking) toast('✦ '+fmtD(amt)+' added to '+date.slice(0,7)+' income.','ok');
-  else if(added) toast('✦ '+fmtD(amt)+' added to income and to checking.','ok');
-  else toast('✦ '+fmtD(amt)+' added to income. Set checking on the Ledger if you want the next one to land there.','warn');
+  if(!land) toast('✦ '+fmtD(amt)+' added to '+date.slice(0,7)+' income.','ok');
+  else toast('✦ '+fmtD(amt)+' added to income and to '+accountName(account).toLowerCase()+'.','ok');
 }
 function undoLastPaycheck(){
   var entries=getPaychecks();
   if(!entries.length){ toast('No paychecks to rescind.','err'); return; }
   var removed=entries.pop();
-  if(removed && removed.addedToChecking && accountIsSet('checking')) shiftAccount('checking', -Number(removed.amount||0));
+  var which=removed && removed.account==='savings' ? 'savings' : 'checking';
+  var added=removed && (removed.addedToAccount || removed.addedToChecking);
+  if(added && accountIsSet(which)) shiftAccount(which, -Number(removed.amount||0));
   setPaychecks(entries);
   renderPaychecks();
   renderDash();
@@ -1730,7 +2231,9 @@ function renderPaychecks(){
   if(!rows.length){ wrap.innerHTML='<div class="empty">No paychecks logged for this month. The usual monthly amount is used until you add one.</div>'; return; }
   var html='';
   rows.slice().reverse().forEach(function(e){
-    html+='<div class="income-row"><div class="income-info"><span class="income-desc">Paycheck</span><span class="income-meta">'+e.date+(e.addedToChecking?' · added to checking':'')+'</span></div><span class="income-amt">+'+fmtD(e.amount)+'</span></div>';
+    var where=e.account==='savings'?'savings':'checking';
+    var landed=e.addedToAccount || e.addedToChecking;
+    html+='<div class="income-row"><div class="income-info"><span class="income-desc">Paycheck</span><span class="income-meta">'+e.date+(landed?' · added to '+where:'')+'</span></div><span class="income-amt">+'+fmtD(e.amount)+'</span></div>';
   });
   wrap.innerHTML=html;
 }
@@ -2032,7 +2535,7 @@ function cloudSignOut() {
 }
 
 function hasLocalLedger() {
-  return getExpenses().length > 0 || getBills().length > 0 || getSideIncome().length > 0 || getPaychecks().length > 0 ||
+  return getExpenses().length > 0 || getBills().length > 0 || getSideIncome().length > 0 || getPaychecks().length > 0 || getMoves().length > 0 || getLoanPay().length > 0 || getCardPay().length > 0 ||
     (APP.payAmt != null && APP.payAmt !== '' && !isNaN(APP.payAmt) && Number(APP.payAmt) > 0) ||
     accountIsSet('checking') || accountIsSet('savings');
 }
@@ -2043,6 +2546,9 @@ function remoteHasLedger(remote) {
     (remote.bills && remote.bills.length) ||
     (remote.sideincome && remote.sideincome.length) ||
     (remote.paychecks && remote.paychecks.length) ||
+    (remote.moves && remote.moves.length) ||
+    (remote.cardpay && remote.cardpay.length) ||
+    (remote.loanpay && remote.loanpay.length) ||
     (remote.settings && remote.settings.payAmt);
 }
 
@@ -2078,7 +2584,7 @@ function applyRemoteData(remote, showToast) {
   if (settings.payAmt !== undefined) APP.payAmt = settings.payAmt === '' || settings.payAmt === null ? null : parseFloat(settings.payAmt);
   APP.k401Pct = 0;
   APP.savePct = 0;
-  if (settings.budgets && settings.budgets.length) APP.budgets = dropPayrollPremiums(settings.budgets);
+  if (settings.budgets && settings.budgets.length) APP.budgets = ensureRentersLine(ensureLoanLines(dropPayrollPremiums(settings.budgets)));
   if (settings.checking !== undefined) {
     APP.checking = (settings.checking === null || settings.checking === '') ? null : parseFloat(settings.checking);
     if (isNaN(APP.checking)) APP.checking = null;
@@ -2094,6 +2600,10 @@ function applyRemoteData(remote, showToast) {
   if (Array.isArray(remote.billpay)) setBillPay(remote.billpay, { skipCloudWrite: true });
   if (Array.isArray(remote.sideincome)) setSideIncome(remote.sideincome, { skipCloudWrite: true });
   if (Array.isArray(remote.paychecks)) setPaychecks(remote.paychecks, { skipCloudWrite: true });
+  if (Array.isArray(remote.loans)) setLoans(remote.loans, { skipCloudWrite: true });
+  if (Array.isArray(remote.loanpay)) setLoanPay(remote.loanpay, { skipCloudWrite: true });
+  if (Array.isArray(remote.moves)) setMoves(remote.moves, { skipCloudWrite: true });
+  if (Array.isArray(remote.cardpay)) setCardPay(remote.cardpay, { skipCloudWrite: true });
   try {
     if (remote.exportedAt) localStorage.setItem(SYNC_TIME_KEY, remote.exportedAt);
   } catch (e) {}
@@ -2185,7 +2695,11 @@ function buildBackupPayload() {
     bills: getBills(),
     billpay: getBillPay(),
     sideincome: getSideIncome(),
-    paychecks: getPaychecks()
+    paychecks: getPaychecks(),
+    loans: getLoans() || [],
+    loanpay: getLoanPay(),
+    moves: getMoves(),
+    cardpay: getCardPay()
   });
 }
 
@@ -2400,6 +2914,8 @@ function buildPDFHTML(type, month, year, exps, inc) {
 /* INIT */
 document.getElementById('log-date').value = new Date().toISOString().split('T')[0];
 document.getElementById('inc-date').value = new Date().toISOString().split('T')[0];
+document.getElementById('move-date').value = new Date().toISOString().split('T')[0];
+updateBillSourceNote();
 buildPDFMonth('pdf-month');
 buildPDFYear('pdf-year');
 document.getElementById('header-ribbon').innerHTML = '✦ &nbsp; Anno Domini ' + new Date().getFullYear() + ' &nbsp; ✦';
