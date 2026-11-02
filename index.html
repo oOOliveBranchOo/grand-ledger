@@ -1653,6 +1653,15 @@ function setCardOpening(where){
   renderDash();
   toast('✦ The card shows '+fmtD(typed)+'. New charges add to it. This starting balance is not a new provision.','ok');
 }
+function seedCardBalance(){
+  try {
+    if (localStorage.getItem('coquette_cardseed') === '1') return;
+    var figs = creditCardFigures();
+    APP.cardOpen = Math.round((1234.62 - figs.charges + figs.paidDown) * 100) / 100;
+    localStorage.setItem('coquette_cardseed', '1');
+    persist();
+  } catch (e) {}
+}
 function payOffCard(where, full){
   var figs=creditCardFigures();
   var owed=figs.owed;
@@ -2968,6 +2977,7 @@ buildPDFMonth('pdf-month');
 buildPDFYear('pdf-year');
 document.getElementById('header-ribbon').innerHTML = '✦ &nbsp; Anno Domini ' + new Date().getFullYear() + ' &nbsp; ✦';
 load();
+seedCardBalance();
 buildAllPickers();
 updateCats();
 renderDash();
