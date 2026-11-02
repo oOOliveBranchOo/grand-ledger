@@ -485,9 +485,18 @@
   </div>
   <div class="card" id="cardbill-card">
     <div class="card-title">✦ The Credit Card Bill ✦</div>
-    <div class="banner banner-blue" style="font-size:12px;">This is everything still on the card. It is already in the provisions. Pay Off uses the amount you type, or the whole bill if the amount is blank. Paid Off pays whatever is left. The money leaves checking or savings, and the purchases are not counted again.</div>
+    <div class="banner banner-blue" style="font-size:12px;">Type the balance already on the card, then Set this balance. That amount is not a new provision. New charges add on top. Pay Off uses the amount you type, or the whole bill if the amount is blank. Paid Off pays whatever is left, and that money leaves checking or savings.</div>
     <div class="stat"><div class="stat-label">Still on the card</div><div class="stat-value sv-rose" id="cardbill-owed">$0.00</div><div class="bill-meta" id="cardbill-note" style="margin-top:4px;"></div></div>
     <div id="cardbill-list"></div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Already on the card ($)</label>
+        <input type="number" id="cardbill-open" placeholder="0.00" step="0.01" min="0">
+      </div>
+      <div class="form-group" style="display:flex;align-items:flex-end;">
+        <button type="button" class="btn-silver" onclick="setCardOpening('ledger')">Set this balance</button>
+      </div>
+    </div>
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">Pay from</label>
@@ -715,9 +724,18 @@
   </div>
   <div class="card" id="bcard-card">
     <div class="card-title">✦ The Credit Card Bill ✦</div>
-    <div class="banner banner-blue" style="font-size:12px;">Charges you put on the card are already in the provisions. Pay Off uses the amount you type, or the whole bill if it is blank. Paid Off pays the rest from checking or savings.</div>
+    <div class="banner banner-blue" style="font-size:12px;">Type a balance that is already on the card. It is not counted as new spending. New charges add on top, and they are already in the provisions. Pay Off or Paid Off takes the payment from checking or savings.</div>
     <div class="stat"><div class="stat-label">Still on the card</div><div class="stat-value sv-rose" id="bcard-owed">$0.00</div><div class="bill-meta" id="bcard-note" style="margin-top:4px;"></div></div>
     <div id="bcard-list"></div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Already on the card ($)</label>
+        <input type="number" id="bcard-open" placeholder="0.00" step="0.01" min="0">
+      </div>
+      <div class="form-group" style="display:flex;align-items:flex-end;">
+        <button type="button" class="btn-silver" onclick="setCardOpening('bills')">Set this balance</button>
+      </div>
+    </div>
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">Pay from</label>
@@ -982,6 +1000,7 @@ var APP = {
   grossIncome: 0,
   checking: null,
   savings: null,
+  cardOpen: 0,
   bucket: 'Needs',
   affirmations: [
     "Every coin I set aside is a small act of self-devotion; I am building a life as beautiful on the inside as it appears on the outside.",
@@ -1059,6 +1078,9 @@ function load() {
     var sv = localStorage.getItem('coquette_savings');
     APP.savings = (sv===null || sv==='') ? null : parseFloat(sv);
     if (isNaN(APP.savings)) APP.savings = null;
+    var co = localStorage.getItem('coquette_cardopen');
+    APP.cardOpen = (co===null || co==='') ? 0 : parseFloat(co);
+    if (isNaN(APP.cardOpen)) APP.cardOpen = 0;
   } catch(e){ APP.budgets = JSON.parse(JSON.stringify(APP.defaultBudgets)); }
   document.getElementById('affirmation-text').textContent = APP.affirmations[Math.floor(Math.random()*APP.affirmations.length)];
 }
@@ -1083,6 +1105,7 @@ function persist(opts) {
     localStorage.setItem('coquette_savepct', (APP.savePct!=null)?APP.savePct:0);
     localStorage.setItem('coquette_checking', (APP.checking!=null && !isNaN(APP.checking)) ? APP.checking : '');
     localStorage.setItem('coquette_savings', (APP.savings!=null && !isNaN(APP.savings)) ? APP.savings : '');
+    localStorage.setItem('coquette_cardopen', (APP.cardOpen!=null && !isNaN(APP.cardOpen)) ? APP.cardOpen : 0);
     if (!opts.skipCloudWrite) {
       localStorage.setItem(SYNC_TIME_KEY, new Date().toISOString());
       scheduleCloudWrite();
@@ -1618,6 +1641,18 @@ function updateBillSourceNote(){
 }
 function getCardPay(){ try{ var d=localStorage.getItem('coquette_cardpay'); return d?JSON.parse(d):[]; }catch(e){return[];} }
 function setCardPay(a, opts){ opts=opts||{}; try{ localStorage.setItem('coquette_cardpay',JSON.stringify(a)); }catch(e){} if(!opts.skipCloudWrite){ try{ localStorage.setItem(SYNC_TIME_KEY, new Date().toISOString()); }catch(e){} scheduleCloudWrite(); updateSyncStatus(); } }
+function setCardOpening(where){
+  var el=document.getElementById(where==='bills'?'bcard-open':'cardbill-open');
+  if(!el || el.value===''){ toast('Enter the balance you see on the card.','err'); return; }
+  var typed=Math.round((parseFloat(el.value)||0)*100)/100;
+  if(isNaN(typed) || typed<0){ toast('Enter the balance you see on the card.','err'); return; }
+  var figs=creditCardFigures();
+  APP.cardOpen=Math.round((typed - figs.charges + figs.paidDown)*100)/100;
+  persist();
+  el.value='';
+  renderDash();
+  toast('✦ The card shows '+fmtD(typed)+'. New charges add to it. This starting balance is not a new provision.','ok');
+}
 function payOffCard(where, full){
   var figs=creditCardFigures();
   var owed=figs.owed;
@@ -1661,7 +1696,11 @@ function renderCardBill(){
     owedEl.textContent=fmtD(figsAll.owed);
     owedEl.className='stat-value '+(figsAll.owed>0?'sv-rose':'sv-green');
     var note=document.getElementById(pair[0]+'-note');
-    if(note) note.textContent=fmtD(monthFigs.monthCharges)+' charged this month · already in the provisions';
+    if(note){
+      var bits=fmtD(monthFigs.monthCharges)+' charged this month';
+      if(figsAll.open) bits+=' · includes the balance already on the card';
+      note.textContent=bits;
+    }
     var list=document.getElementById(pair[0]+'-list');
     if(list){
       var rows=getExpenses().filter(function(e){ return e.payment==='Credit Card' && e.month===month; });
@@ -1703,9 +1742,13 @@ function creditCardFigures(month){
     if(b && b.trackOnly) paidDown+=Number(p.amount)||0;
   });
   getCardPay().forEach(function(p){ paidDown+=Number(p.amount)||0; });
+  var open=(APP.cardOpen!=null && !isNaN(APP.cardOpen)) ? Number(APP.cardOpen) : 0;
   return {
-    owed: Math.max(0, Math.round((charges-paidDown)*100)/100),
-    monthCharges: Math.round(monthCharges*100)/100
+    owed: Math.max(0, Math.round((open+charges-paidDown)*100)/100),
+    monthCharges: Math.round(monthCharges*100)/100,
+    charges: Math.round(charges*100)/100,
+    paidDown: Math.round(paidDown*100)/100,
+    open: Math.round(open*100)/100
   };
 }
 function unpaidForAccount(account, month){
@@ -2537,7 +2580,7 @@ function cloudSignOut() {
 function hasLocalLedger() {
   return getExpenses().length > 0 || getBills().length > 0 || getSideIncome().length > 0 || getPaychecks().length > 0 || getMoves().length > 0 || getLoanPay().length > 0 || getCardPay().length > 0 ||
     (APP.payAmt != null && APP.payAmt !== '' && !isNaN(APP.payAmt) && Number(APP.payAmt) > 0) ||
-    accountIsSet('checking') || accountIsSet('savings');
+    accountIsSet('checking') || accountIsSet('savings') || (APP.cardOpen!=null && !isNaN(APP.cardOpen) && Number(APP.cardOpen)!==0);
 }
 
 function remoteHasLedger(remote) {
@@ -2592,6 +2635,10 @@ function applyRemoteData(remote, showToast) {
   if (settings.savings !== undefined) {
     APP.savings = (settings.savings === null || settings.savings === '') ? null : parseFloat(settings.savings);
     if (isNaN(APP.savings)) APP.savings = null;
+  }
+  if (settings.cardOpen !== undefined) {
+    APP.cardOpen = (settings.cardOpen === null || settings.cardOpen === '') ? 0 : parseFloat(settings.cardOpen);
+    if (isNaN(APP.cardOpen)) APP.cardOpen = 0;
   }
   recalcIncome();
   persist({ skipCloudWrite: true });
@@ -2689,7 +2736,8 @@ function buildBackupPayload() {
       savePct: 0,
       budgets: APP.budgets || [],
       checking: (APP.checking!=null && !isNaN(APP.checking)) ? APP.checking : null,
-      savings: (APP.savings!=null && !isNaN(APP.savings)) ? APP.savings : null
+      savings: (APP.savings!=null && !isNaN(APP.savings)) ? APP.savings : null,
+      cardOpen: (APP.cardOpen!=null && !isNaN(APP.cardOpen)) ? APP.cardOpen : 0
     },
     expenses: getExpenses(),
     bills: getBills(),
